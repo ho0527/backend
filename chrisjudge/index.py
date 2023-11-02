@@ -72,7 +72,7 @@ def thirdpartylogin(request,type):
                 query("chrisjudge","INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`email`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",["","","","1",data["email"],time(),time()])
             row=query(db,"SELECT*FROM `user` WHERE `email`=%s",[data["email"]])
             token=str(hash(data["email"],"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",["google_"+str(row[0][0]),token,time()])
+            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[str(row[0][0]),token,time()]) # "google_"+ (1)
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入_google",time()])
             return Response({
                 "success": True,

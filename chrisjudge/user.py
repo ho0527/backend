@@ -170,7 +170,7 @@ def getresponse(request):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def responselist(request):
+def getresponselist(request):
     try:
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])

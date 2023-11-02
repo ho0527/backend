@@ -15,7 +15,7 @@ urlpatterns=[
     path("edituser",user.edituser,name="edituser"),
     path("newresponse/<str:questionid>",user.newresponse,name="newresponse"),
     path("getresponse",user.getresponse,name="getresponse"),
-    path("responselist",user.responselist,name="responselist"),
+    path("getresponselist",user.getresponselist,name="getresponselist"),
 
     path("getquestionlist",admin.getquestionlist,name="getquestionlist"),
     path("getquestion/<str:id>",admin.getquestion,name="getquestion"),
