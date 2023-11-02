@@ -27,28 +27,28 @@ def checkfile(file,question):
             if output.returncode!=0:
                 success=False
                 result="MF"
-                response=f"{response}\n test_{i+1} failed memory overload,\n max memory: 128MB"
+                response=f"{response}test_{i+1} failed memory overload,\n max memory: 128MB,\n"
 
             # 比對輸出結果
             elif actualoutput!=expectedoutput:
                 success=False
                 result="RF"
-                response=f"{response}\n test_{i+1} failed respound failed,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},"
+                response=f"{response}test_{i+1} failed respound failed,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},\n"
 
             # 超時
             elif time.time()-inputruntime>int(question[7]):
                 success=False
                 result="OT"
-                response=f"{response}\n test_{i+1} failed overtime,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},"
+                response=f"{response}test_{i+1} failed overtime,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},\n"
 
             else:
-                response=f"{response}\n test_{i+1} success,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},"
+                response=f"{response}test_{i+1} success,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: {actualoutput},\n"
 
         except subprocess.TimeoutExpired:
             success=False
             runtime=">100s"
             result="OT"
-            response=f"{response}\n test_{i+1} failed overtime,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: N/A,"
+            response=f"{response}test_{i+1} failed overtime,\n input: {testinput[i]},\n expectedoutput: {expectedoutput},\n actualoutput: N/A,\n"
 
     if success:
         runtime=time.time()-runtime
