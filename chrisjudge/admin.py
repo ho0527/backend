@@ -81,6 +81,7 @@ def newquestion(request):
     try:
         data=json.loads(request.body)
         title=data.get("title")
+        print("title="+str(title))
         description=data.get("description")
         tag=data.get("tag")
         input=data.get("input")

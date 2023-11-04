@@ -115,25 +115,31 @@ def newresponse(request,questionid):
             responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%sAND`questionid`=%s",[userid,questionid])
             questionrow=query(db,"SELECT*FROM `question` WHERE `id`=%s",[questionid])
             fileextension=os.path.splitext(request.FILES["file"].name)[1]
-            filename=str(userid)+"_"+str(questionid)+"testfile"+"_"+"v"+(str(len(responserow)+1).zfill(4))+fileextension
-            rpath="C:/nginx/python/backend/"
-            fileurl=rpath+"chrisjudge/upload/"+str(filename)
+            if fileextension==".php":
+                filename=str(userid)+"_"+str(questionid)+"testfile"+"_"+"v"+(str(len(responserow)+1).zfill(4))+fileextension
+                rpath="C:/nginx/python/backend/"
+                fileurl=rpath+"chrisjudge/upload/"+str(filename)
 
-            uploadfile("./chrisjudge/upload",request.FILES["file"],filename)
+                uploadfile("./chrisjudge/upload",request.FILES["file"],filename)
 
-            response=checkfile(fileurl,questionrow[0])
+                response=checkfile(fileurl,questionrow[0])
 
-            query(
-                "chrisjudge",
-                "INSERT INTO `response`(`userid`,`questionid`,`fileurl`,`fileextension`,`version`,`result`,`response`,`runtime`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                [userid,questionid,fileurl,fileextension,len(responserow)+1,response["result"],response["response"],response["runtime"],time()]
-            )
-            query("chrisjudge","INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"回應題目: "+questionid,time()])
+                query(
+                    "chrisjudge",
+                    "INSERT INTO `response`(`userid`,`questionid`,`fileurl`,`fileextension`,`version`,`result`,`response`,`runtime`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    [userid,questionid,fileurl,fileextension,len(responserow)+1,response["result"],response["response"],response["runtime"],time()]
+                )
+                query("chrisjudge","INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"回應題目: "+questionid,time()])
 
-            return Response({
-                "success": True,
-                "data": response["result"]
-            },status.HTTP_200_OK)
+                return Response({
+                    "success": True,
+                    "data": response["result"]
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "檔案不支援!"
+                },status.HTTP_400_BAD_REQUEST)
         else:
             return Response({
                 "success": False,
