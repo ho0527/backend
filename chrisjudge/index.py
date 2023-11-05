@@ -159,6 +159,32 @@ def logout(request,token):
             },status.HTTP_200_OK)
         else:
             return Response({
+                "success": True,
+                "data": ""
+            },status.HTTP_200_OK)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def logincheck(request):
+    try:
+        token=request.headers.get("Authorization").split("Bearer ")[1]
+        row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
+        if row:
+            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])[0]
+            return Response({
+                "success": True,
+                "data": {
+                    "userid": userrow[0],
+                    "permission": userrow[4],
+                }
+            },status.HTTP_200_OK)
+        else:
+            return Response({
                 "success": False,
                 "data": "token不存在"
             },status.HTTP_403_FORBIDDEN)
@@ -168,3 +194,4 @@ def logout(request,token):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+    pass
