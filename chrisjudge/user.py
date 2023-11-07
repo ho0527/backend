@@ -24,6 +24,7 @@ db="chrisjudge"
 @api_view(["GET"])
 def getuser(request,token):
     try:
+        # token=request.headers.get("Authorization").split("Bearer ")[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
             userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])

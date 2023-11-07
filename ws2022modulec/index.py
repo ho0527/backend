@@ -22,43 +22,6 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpas
 db="chrisjudge"
 
 @api_view(["POST"])
-def login(request):
-    try:
-        data=json.loads(request.body)
-        username=data.get("username")
-        password=data.get("password")
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-        if row:
-            if checkpassword(password,row[0][2]):
-                row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-                token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入",time()])
-                return Response({
-                    "success": True,
-                    "data": {
-                        "token": token,
-                        "permission": row[0][4]
-                    }
-                },status.HTTP_200_OK)
-            else:
-                return Response({
-                    "success": False,
-                    "data": "密碼錯誤"
-                },status.HTTP_403_FORBIDDEN)
-        else:
-            return Response({
-                "success": False,
-                "data": "帳號錯誤"
-            },status.HTTP_403_FORBIDDEN)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["POST"])
 def logingoogle(request):
     try:
         data=json.loads(request.body)
@@ -146,3 +109,44 @@ def signup(request):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+def signin(request):
+    try:
+        data=json.loads(request.body)
+        username=data.get("username")
+        password=data.get("password")
+        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+        if row:
+            if checkpassword(password,row[0][2]):
+                row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+                token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入",time()])
+                return Response({
+                    "success": True,
+                    "data": {
+                        "token": token,
+                        "permission": row[0][4]
+                    }
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "密碼錯誤"
+                },status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({
+                "success": False,
+                "data": "帳號錯誤"
+            },status.HTTP_403_FORBIDDEN)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+def signout(request):
+    pass
