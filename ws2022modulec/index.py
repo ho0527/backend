@@ -19,43 +19,7 @@ from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
 
 # main START
-db="chrisjudge"
-
-@api_view(["POST"])
-def logingoogle(request):
-    try:
-        data=json.loads(request.body)
-        print(data)
-        try:
-            row=query("thirdpartylogin","SELECT*FROM `google` WHERE `email`=%s",[data["email"]])
-            if not row:
-                query("thirdpartylogin","INSERT INTO `google`(`iss`,`azp`,`aud`,`sub`,`email`,`emailverified`,`nbf`,`name`,`picture`,`givenname`,`familyname`,`locale`,`iat`,`exp`,`jti`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",[data["iss"],data["azp"],data["aud"],data["sub"],data["email"],data["email_verified"],data["nbf"],data["name"],data["picture"],data["given_name"],data["family_name"],data["locale"],data["iat"],data["exp"],data["jti"],time()])
-            row=query("chrisjudge","SELECT*FROM `user` WHERE `email`=%s",[data["email"]])
-            if not row:
-                query("chrisjudge","INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`email`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",["","","","1",data["email"],time(),time()])
-            row=query(db,"SELECT*FROM `user` WHERE `email`=%s",[data["email"]])
-            token=str(hash(data["email"],"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",["google_"+str(row[0][0]),token,time()])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入_google",time()])
-            return Response({
-                "success": True,
-                "data": {
-                    "token": token,
-                    "permission": row[0][4]
-                }
-            },status.HTTP_200_OK)
-        except ValueError:
-            # 令牌验证失败，处理错误情况
-            return Response({
-                "success": False,
-                "data": "google 驗證失敗請稍後在試\n"+str(error)
-            },status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+db="ws2022modulec"
 
 @api_view(["POST"])
 def signup(request):
@@ -63,13 +27,12 @@ def signup(request):
         data=json.loads(request.body)
         username=data.get("username")
         password=data.get("password")
-        nickname=data.get("nickname")
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
         if username:
-            if len(password)>6:
-                if nickname:
+            if len(username)>6:
+                if len(password)>6:
                     if not row:
-                        query(db,"INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s)",[username,hashpassword(password),nickname,"1",time(),time()])
+                        query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s)",[username,hashpassword(password),time(),time()])
                         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                         token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
                         query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
@@ -91,7 +54,7 @@ def signup(request):
                 else:
                     return Response({
                         "success": False,
-                        "data": "請輸入暱稱"
+                        "data": "密碼長度不得小於大於6"
                     },status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({
