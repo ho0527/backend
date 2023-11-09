@@ -21,51 +21,87 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpas
 # main START
 db="ws2022modulec"
 
+def usercheck(data):
+    try:
+        header=data.headers.get("Authorization")
+        if header:
+            row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
+            if row:
+                return {
+                    "status": "success"
+                }
+            else:
+                return {
+                    "status": "unauthenticated",
+                    "message": "invalid token"
+                }
+        else:
+            return {
+                "status": "unauthenticated",
+                "message": "missing token"
+            }
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(["POST"])
 def signup(request):
     try:
         data=json.loads(request.body)
         username=data.get("username")
         password=data.get("password")
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-        if username:
-            if len(username)>6:
-                if len(password)>6:
-                    if not row:
-                        query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s)",[username,hashpassword(password),time(),time()])
-                        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-                        token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-                        query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者註冊",time()])
+        invaliddata={}
 
-                        print("username: "+str(username))
-                        print("logintoken: "+str(token))
-                        return Response({
-                            "success": True,
-                            "data": {
-                                "token": token
-                            }
-                        },status.HTTP_200_OK)
-                    else:
-                        return Response({
-                            "success": False,
-                            "data": "使用者以存在"
-                        },status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({
-                        "success": False,
-                        "data": "密碼長度不得小於大於6"
-                    },status.HTTP_400_BAD_REQUEST)
+        check=True
+        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+
+        if not username:
+            invaliddata["username"]="required"
+            check=False
+        else:
+            if len(username)<4:
+                invaliddata["username"]="must be at least 4 characters long"
+                check=False
+            elif len(username)>60:
+                invaliddata["username"]="must be at most 60 characters long"
+                check=False
+
+        if not password:
+            invaliddata["password"]="required"
+            check=False
+        else:
+            if len(password)<4:
+                invaliddata["password"]="must be at least 4 characters long"
+                check=False
+            elif len(password)>(2**16):
+                invaliddata["password"]="must be at most 2^16 characters long"
+                check=False
+
+        if not row:
+            if check:
+                query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`,`lastlogintime`,`deltime`,`delreason`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[username,hashpassword(password),time(),time(),time(),"",""])
+                row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+                token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+
+                return Response({
+                    "status": "success",
+                    "token": token
+                },status.HTTP_200_OK)
             else:
                 return Response({
-                    "success": False,
-                    "data": "密碼長度不得小於大於6"
+                    "status": "invalid",
+                    "message": "request body is not valid",
+                    "violations": invaliddata
                 },status.HTTP_400_BAD_REQUEST)
         else:
             return Response({
-                "success": False,
-                "data": "請輸入帳號"
-            },status.HTTP_400_BAD_REQUEST)
+                "status": "invalid",
+                "message": "user exist"
+            },status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -79,30 +115,60 @@ def signin(request):
         data=json.loads(request.body)
         username=data.get("username")
         password=data.get("password")
+        invaliddata={}
+
+        check=True
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+
+        if not username:
+            invaliddata["username"]="required"
+            check=False
+        else:
+            if len(username)<4:
+                invaliddata["username"]="must be at least 4 characters long"
+                check=False
+            elif len(username)>60:
+                invaliddata["username"]="must be at most 60 characters long"
+                check=False
+
+        if not password:
+            invaliddata["password"]="required"
+            check=False
+        else:
+            if len(password)<4:
+                invaliddata["password"]="must be at least 4 characters long"
+                check=False
+            elif len(password)>(2**16):
+                invaliddata["password"]="must be at most 2^16 characters long"
+                check=False
+
         if row:
             if checkpassword(password,row[0][2]):
-                row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-                token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入",time()])
-                return Response({
-                    "success": True,
-                    "data": {
-                        "token": token,
-                        "permission": row[0][4]
-                    }
-                },status.HTTP_200_OK)
+                if check:
+                    row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+                    token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+                    query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+
+                    return Response({
+                        "status": "success",
+                        "token": token
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "status": "invalid",
+                        "message": "request body is not valid",
+                        "violations": invaliddata
+                    },status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({
-                    "success": False,
-                    "data": "密碼錯誤"
-                },status.HTTP_403_FORBIDDEN)
+                    "status": "invalid",
+                    "message": "Wrong username or password"
+                },status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({
-                "success": False,
-                "data": "帳號錯誤"
-            },status.HTTP_403_FORBIDDEN)
+                "status": "invalid",
+                "message": "Wrong username or password"
+            },status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -112,4 +178,16 @@ def signin(request):
 
 @api_view(["POST"])
 def signout(request):
-    pass
+    try:
+        check=usercheck(request)
+        if check["status"]=="success":
+            query(db,"DELETE FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
+            return Response(check,status.HTTP_200_OK)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
