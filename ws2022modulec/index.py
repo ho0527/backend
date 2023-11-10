@@ -17,35 +17,10 @@ from google.auth.transport import requests
 # 自創
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from ws2022modulec.function import usercheck
 
 # main START
 db="ws2022modulec"
-
-def usercheck(data):
-    try:
-        header=data.headers.get("Authorization")
-        if header:
-            row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
-            if row:
-                return {
-                    "status": "success"
-                }
-            else:
-                return {
-                    "status": "unauthenticated",
-                    "message": "invalid token"
-                }
-        else:
-            return {
-                "status": "unauthenticated",
-                "message": "missing token"
-            }
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def signup(request):

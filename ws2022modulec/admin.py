@@ -16,6 +16,7 @@ from rest_framework.response import Response
 # 自創
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash,uploadfile
+from ws2022modulec.function import usercheck
 
 # main START
 db="chrisjudge"
