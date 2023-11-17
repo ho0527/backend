@@ -6,19 +6,6 @@ from . import game
 from . import admin
 
 urlpatterns=[
-# POST /api/v1/auth/signup
-# POST /api/v1/auth/signin
-# POST /api/v1/auth/signout
-# GET /api/v1/games
-# POST /api/v1/games
-# GET /api/v1/games/:slug
-# POST /api/v1/games/:slug/upload
-# GET /games/:slug/:version
-# PUT /api/v1/games/:slug
-# DELETE /api/v1/games/:slug
-# GET /api/v1/users/:username
-# POST /api/v1/games/:slug/scores
-
     path("api/v1/auth/signup",index.signup,name="signup"),
     path("api/v1/auth/signin",index.signin,name="signin"),
     path("api/v1/auth/signout",index.signout,name="signout"),
