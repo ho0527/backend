@@ -176,7 +176,7 @@ def getuserlist(request):
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
             loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
-            if int(loginuserrow[0][4])>=4:
+            if loginuserrow:
                 userrow=query(db,"SELECT*FROM `user`")
                 query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"查詢使用者列表",time()])
                 return Response({

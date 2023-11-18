@@ -183,11 +183,6 @@ def logincheck(request):
                     "permission": userrow[4],
                 }
             },status.HTTP_200_OK)
-        else:
-            return Response({
-                "success": False,
-                "data": "token不存在"
-            },status.HTTP_403_FORBIDDEN)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
