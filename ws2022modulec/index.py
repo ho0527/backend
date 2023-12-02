@@ -166,3 +166,17 @@ def signout(request):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET","POST","PUT","DELETE"])
+def error404(request):
+    try:
+        return Response({
+            "status": "not found",
+            "message": "Not found"
+        },status.HTTP_404_NOT_FOUND)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)

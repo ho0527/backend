@@ -4,6 +4,7 @@ from django.conf.urls import handler400,handler403,handler404,handler500
 
 urlpatterns=[
     # 技能競賽
+    path("45regional/",include("45regional.url"),name="45regional"), # 45regional
     path("46nationalmoduled/",include("46nationalmoduled.url"),name="46nationalmoduled"), # 46nationalmoduled
     path("51regional/",include("51regional.url"),name="51regional"), # 51regional
     path("52nationalmodulee/",include("52nationalmodulee.url"),name="52nationalmodulee"), # 46nationalmoduled

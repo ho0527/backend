@@ -19,10 +19,64 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpas
 from ws2022modulec.function import usercheck
 
 # main START
+db="ws2022modulec"
 
 @api_view(["GET"])
 def getgamelist(request):
-    pass
+    try:
+        page=request.GET.get("page")
+        size=request.GET.get("size")
+        sortby=request.GET.get("sortBy")
+        sorttype=request.GET.get("sortDir")
+        check=True
+
+        # 初始化 START
+        if page==None:
+            page=0
+
+        if size==None:
+            size=10
+
+        if sortby==None:
+            sortby="title"
+
+        if sorttype==None:
+            sorttype="asc"
+
+        page=int(page)
+        size=int(size)
+        # 初始化 END
+
+        # 驗證 START
+        if page<0:
+            check=False
+
+        if size<1:
+            check=False
+
+        if sortby!="title" or sortby!="popular" or sortby!="uploaddate":
+            check=False
+
+        if sorttype!="asc" or sorttype!="desc":
+            check=False
+        # 驗證 END
+
+        if check:
+            return Response({
+                "success": True,
+                "data": ""
+            },status.HTTP_200_OK)
+        else:
+            return Response({
+                "success": True,
+                "data": ""
+            },status.HTTP_200_OK)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
 def newgame(request):
