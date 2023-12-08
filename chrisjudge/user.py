@@ -117,7 +117,7 @@ def newresponse(request,questionid):
             questionrow=query(db,"SELECT*FROM `question` WHERE `id`=%s",[questionid])
             fileextension=os.path.splitext(request.FILES["file"].name)[1]
             if fileextension==".php":
-                filename=str(userid)+"_"+str(questionid)+"testfile"+"_"+"v"+(str(len(responserow)+1).zfill(4))+fileextension
+                filename=str(userid).zfill(5)+"_"+str(questionid).zfill(5)+"_testfile"+"_"+"v"+(str(len(responserow)+1).zfill(4))+fileextension
                 rpath="C:/nginx/python/backend/"
                 fileurl=rpath+"chrisjudge/upload/"+str(filename)
 

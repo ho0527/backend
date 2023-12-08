@@ -50,12 +50,9 @@ def checkfile(file,question):
             result="OT"
             response=f"{response}test_{i+1} failed overtime\ninput:\n{testinput[i]}\nexpectedoutput: {expectedoutput}\nactualoutput: N/A\n"
 
-    if success:
-        runtime=time.time()-runtime
-
     return {
         "success": success,
         "response": response, # 回傳所有測試的輸出
-        "runtime": runtime, # 回傳執行時間
+        "runtime": time.time()-runtime, # 回傳執行時間
         "result": result
     }
