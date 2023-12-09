@@ -88,9 +88,12 @@ def newquestion(request):
         output=data.get("output")
         maxruntime=data.get("maxruntime")
 
-        token=request.headers.get("Authorization").split("Bearer ")[1]
+        token=None
+        if request.headers.get("Authorization"):
+            token=request.headers.get("Authorization").split("Bearer ")[1]
+
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
-        if userrow:
+        if userrow and token!=None:
             userid=userrow[0][1]
             query(db,"INSERT INTO `question`(`userid`,`title`,`description`,`tag`,`input`,`output`,`maxruntime`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",[userid,title,description,tag,input,output,maxruntime,time(),time()])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"新增題目",time()])

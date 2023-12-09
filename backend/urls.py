@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path,include
-from django.conf.urls import handler400,handler403,handler404,handler500
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns=[
     # 技能競賽
@@ -13,10 +14,8 @@ urlpatterns=[
 
     # 自用
     path("chclass/",include("chclass.url"),name="chclass"), # chclass
-    path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chclass
-]
+    path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
 
-# handler400=view.error400
-# handler403=view.error403
-# handler404=view.error404
-# handler500=view.error500
+    # 專案
+    path("project005/",include("project005.url"),name="project005"), # project005
+]
