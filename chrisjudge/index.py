@@ -102,7 +102,7 @@ def signup(request):
         nickname=data.get("nickname")
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
         if username:
-            if len(password)>6:
+            if len(password)>=7:
                 if nickname:
                     if not row:
                         query(db,"INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s)",[username,hashpassword(password),nickname,"1",time(),time()])
@@ -132,7 +132,7 @@ def signup(request):
             else:
                 return Response({
                     "success": False,
-                    "data": "密碼長度不得小於大於6"
+                    "data": "密碼長度不得小於7"
                 },status.HTTP_400_BAD_REQUEST)
         else:
             return Response({
@@ -189,4 +189,3 @@ def logincheck(request):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
-    pass

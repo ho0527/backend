@@ -159,7 +159,10 @@ def getresponse(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query("chrisjudge","SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            row=query("chrisjudge","SELECT*FROM `response` WHERE `userid`=%s",[userrow[0][1]])
+            userid=userrow[0][1]
+            if request.GET.get("userid"):
+                userid=request.GET.get("userid")
+            row=query("chrisjudge","SELECT*FROM `response` WHERE `userid`=%s",[userid])
             return Response({
                 "success": True,
                 "data": row
