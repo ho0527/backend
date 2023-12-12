@@ -130,7 +130,7 @@ def newresponse(request,questionid):
                     "INSERT INTO `response`(`userid`,`questionid`,`fileurl`,`fileextension`,`version`,`result`,`response`,`runtime`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     [userid,questionid,fileurl,fileextension,len(responserow)+1,response["result"],response["response"],response["runtime"],time()]
                 )
-                query("chrisjudge","INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"回應題目: "+questionid,time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"回應題目: "+questionid,time()])
 
                 return Response({
                     "success": True,
@@ -157,12 +157,12 @@ def newresponse(request,questionid):
 def getresponse(request):
     try:
         token=request.headers.get("Authorization").split("Bearer ")[1]
-        userrow=query("chrisjudge","SELECT*FROM `token` WHERE `token`=%s",[token])
+        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
             userid=userrow[0][1]
             if request.GET.get("userid"):
                 userid=request.GET.get("userid")
-            row=query("chrisjudge","SELECT*FROM `response` WHERE `userid`=%s",[userid])
+            row=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userid])
             return Response({
                 "success": True,
                 "data": row
@@ -185,10 +185,64 @@ def getresponselist(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            row=query("chrisjudge","SELECT*FROM `response`")
+            row=query(db,"SELECT*FROM `response`")
             return Response({
                 "success": True,
                 "data": row
+            },status.HTTP_200_OK)
+        else:
+            return Response({
+                "success": False,
+                "data": "請先登入!"
+            },status.HTTP_403_FORBIDDEN)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getscorelist(request):
+    try:
+        token=request.headers.get("Authorization").split("Bearer ")[1]
+        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
+        if userrow:
+            userrow=query(db,"SELECT*FROM `user`")
+            questionrow=query(db,"SELECT*FROM `question`")
+            data=[]
+            questionidlist=[]
+            for i in range(len(userrow)):
+                responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[i][0]])
+                responselist=[]
+                for j in range(len(questionrow)):
+                    response=""
+                    for k in range(len(responserow)):
+                        if responserow[k][2]==questionrow[j][0]:
+                            response=responserow[k][6]
+                    responselist.append({
+                        "questionid": questionrow[j][0],
+                        "result": response
+                    })
+                if int(userrow[i][4])>=4:
+                    data.append({
+                        "userid": userrow[i][0],
+                        "responselist": None,
+                        "reason": "user is admin"
+                    })
+                else:
+                    data.append({
+                        "userid": userrow[i][0],
+                        "responselist": responselist
+                    })
+
+            for i in range(len(questionrow)):
+                questionidlist.append(questionrow[i][0])
+
+            return Response({
+                "success": True,
+                "data": data,
+                "questionidlist": questionidlist
             },status.HTTP_200_OK)
         else:
             return Response({
