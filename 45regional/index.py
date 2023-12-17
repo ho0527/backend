@@ -31,7 +31,7 @@ def login(request):
             row=row[0]
             if row[2]==password:
                 if verifycodeans==verifycodeuserans:
-                    query(db,"INSERT INTO `data`(`userid`,`signintime`,`signouttime`)VALUES(%s,%s,%s)",[row[0],time(),"-"])
+                    query(db,"INSERT INTO `data`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0],"登入",time()])
                     return Response({
                         "success": True,
                         "data": {
@@ -74,10 +74,9 @@ def logout(request,id):
     try:
         row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])
         if len(row)>0:
-            row=row[0]
-            query(db,"INSERT INTO `data`(`number`,`username`,`password`,`name`,`permission`,`move1`,`move2`,`movetime`)VALUES(%s,%s,%s,%s,%s,'登出','成功',%s)",[row[4],row[1],row[2],row[3],row[5],time()])
+            query(db,"INSERT INTO `data`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0],"登出",time()])
         else:
-            query(db,"INSERT INTO `data`(`number`,`username`,`password`,`name`,`permission`,`move1`,`move2`,`movetime`)VALUES('N/A','','','','','登入','失敗',%s)",[time()])
+            query(db,"INSERT INTO `data`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",["N/A","登出",time()])
         return Response({
             "success": True,
             "data": ""

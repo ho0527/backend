@@ -14,7 +14,7 @@ from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key
 
 # main START
-db="53regional"
+db="45regional"
 
 @api_view(["GET"])
 def getuserlist(request):
@@ -22,7 +22,16 @@ def getuserlist(request):
         keyword=request.GET.get("keyword")
         orderby=request.GET.get("orderby")
         ordertype=request.GET.get("ordertype")
-        if ordertype in ["ASC", "DESC"]:
+        if keyword==None:
+            keyword=""
+
+        if orderby==None:
+            orderby="id"
+
+        if ordertype==None:
+            ordertype="ASC"
+
+        if ordertype in ["ASC","DESC"]:
             row=query(
                 db,
                 "SELECT*FROM `user` WHERE `username`LIKE%sOR`password`LIKE%sOR`name`LIKE%sOR`number`LIKE%sOR`permission`LIKE%s ORDER BY `"+orderby+"` "+ordertype,
@@ -35,7 +44,7 @@ def getuserlist(request):
         else:
             return Response({
                 "success": False,
-                "data": "Invalid ordertype value. It should be either 'ASC' or 'DESC'."
+                "data": "[ERROR]invalid ordertype value it should be either 'ASC' or 'DESC'."
             },status.HTTP_400_BAD_REQUEST)
     except Exception as error:
         return Response({
@@ -64,7 +73,7 @@ def getuser(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
-def newuser(request):
+def signup(request):
     try:
         data=json.loads(request.body)
         username=data.get("username")
@@ -80,7 +89,7 @@ def newuser(request):
                     permission="一般使用者"
                 query(db,"INSERT INTO `user`(`username`,`password`,`name`,`permission`)VALUES(%s,%s,%s,%s)",[username,password,name,permission])
                 row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])[0]
-                number=str(row[0]-1).zfill(5)
+                number=str(row[0]-1).zfill(4)
                 query(db,"UPDATE `user` SET `number`=%s WHERE `id`=%s",[number,row[0]])
                 return Response({
                     "success": True,

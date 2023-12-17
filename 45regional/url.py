@@ -12,7 +12,7 @@ urlpatterns=[
     path("getuserlist",admin.getuserlist,name="getuserlist"),
     path("getuser/<str:id>",admin.getuser,name="getuser"),
     path("getlog",admin.log,name="getlog"),
-    path("newuser",admin.newuser,name="newuser"),
+    path("signup",admin.signup,name="signup"),
     path("editdeluser/<str:id>",admin.editdeluser,name="editdeluser"),
 
     path("getproduct",product.getproduct,name="getproduct"),
