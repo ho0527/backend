@@ -3,7 +3,7 @@ from django.urls import path,include
 
 from . import index
 from . import admin
-from . import product
+from . import todo
 
 urlpatterns=[
     path("login",index.login,name="login"),
@@ -15,8 +15,6 @@ urlpatterns=[
     path("signup",admin.signup,name="signup"),
     path("editdeluser/<str:id>",admin.editdeluser,name="editdeluser"),
 
-    path("getproduct",product.getproduct,name="getproduct"),
-    path("gettemplate",product.gettemplate,name="gettemplate"),
-    path("newproduct",product.newproduct,name="newproduct"),
-    path("newtemplate",product.newtemplate,name="newtemplate"),
+    path("newtodo",todo.newtodo,name="newtodo"),
+    path("gettodolist",todo.gettodolist,name="gettodolist"),
 ]
