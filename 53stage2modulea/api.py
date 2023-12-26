@@ -149,9 +149,124 @@ class newbook(graphene.Mutation):
             token=signincheck(authorization.split(" ")[1])
 
         if token:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[token["id"]])[0]
-            row=query(db,"SELECT*FROM `book` WHERE `isbn`=%s",[isbn])[0]
-            return getuser(id=row[0])
+            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[token["userid"]])[0]
+            if userrow[4]=="ADMIN":
+                check=True
+                isbn=isbn.replace("-","")
+
+                if re.match(r"^[0-9]{13}$",isbn):
+                    isbntotal=0
+                    for i in range(12):
+                        if i%2==0:
+                            isbntotal=isbntotal+(int(isbn[i])*1)
+                        else:
+                            isbntotal=isbntotal+(int(isbn[i])*3)
+                else:
+                    check=False
+
+                if check and -isbntotal%10==int(isbn[12]):
+                    row=query(db,"SELECT*FROM `book` WHERE `isbn`=%s",[isbn])
+                    if not row:
+                        query(db,"INSERT INTO `book`(`name`,`isbn`,`author`,`createtime`)VALUES(%s,%s,%s,%s)",[name,isbn,author,time()])
+                        row=query(db,"SELECT*FROM `book` WHERE `isbn`=%s",[isbn])[0]
+                        return newbook(id=row[0])
+                    else:
+                        raise Exception("book already exists")
+                else:
+                    raise Exception("invaild isbn")
+            else:
+                raise Exception("permission denied")
+        else:
+            raise Exception("unauthorized user")
+
+# --------------- api 07 ---------------
+class deletebook(graphene.Mutation):
+    message=graphene.String()
+
+    class Arguments:
+        id=graphene.Int(required=True)
+
+    def mutate(self,info,id):
+        authorization=info.context.headers.get("Authorization")
+        token=None
+        if authorization and authorization.startswith("Bearer "):
+            token=signincheck(authorization.split(" ")[1])
+
+        if token:
+            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[token["userid"]])[0]
+            if userrow[4]=="ADMIN":
+                row=query(db,"SELECT*FROM `bookborrow` WHERE `bookid`=%s AND `returntime`IS NULL",[id])
+                if not row:
+                    row=query(db,"SELECT*FROM `book` WHERE `id`=%s",[id])
+                    if row:
+                        query(db,"DELETE FROM `book` WHERE `id`=%s",[id])
+                        return deletebook(message="book delete success")
+                    else:
+                        raise Exception("book not exists")
+                else:
+                    raise Exception("book is rental")
+            else:
+                raise Exception("permission denied")
+        else:
+            raise Exception("unauthorized user")
+
+# --------------- api 09 ---------------
+class borrowbook(graphene.Mutation):
+    id=graphene.String()
+
+    class Arguments:
+        bookId=graphene.Int(required=True)
+
+    def mutate(self,info,bookId):
+        id=bookId
+
+        authorization=info.context.headers.get("Authorization")
+        token=None
+        if authorization and authorization.startswith("Bearer "):
+            token=signincheck(authorization.split(" ")[1])
+
+        if token:
+            row=query(db,"SELECT*FROM `bookborrow` WHERE `bookid`=%s AND `returntime`IS NULL",[id])
+            print("id="+str(id))
+            print("row="+str(row))
+            print(row)
+            print(not row)
+            if not row:
+                row=query(db,"SELECT*FROM `book` WHERE `id`=%s",[id])
+                if row:
+                    query(db,"INSERT INTO `bookborrow`(`userid`,`bookid`,`createtime`)VALUES(%s,%s,%s)",[token["userid"],id,time()])
+                    row=query(db,"SELECT*FROM `bookborrow` WHERE `bookid`=%s",[id])
+                    return borrowbook(id=row[-1][0])
+                else:
+                    raise Exception("book not exists")
+            else:
+                raise Exception("book is rental")
+        else:
+            raise Exception("unauthorized user")
+
+# --------------- api 10 ---------------
+class returnbook(graphene.Mutation):
+    message=graphene.String()
+
+    class Arguments:
+        id=graphene.Int(required=True)
+
+    def mutate(self,info,id):
+        authorization=info.context.headers.get("Authorization")
+        token=None
+        if authorization and authorization.startswith("Bearer "):
+            token=signincheck(authorization.split(" ")[1])
+
+        if token:
+            row=query(db,"SELECT*FROM `bookborrow` WHERE `bookid`=%s AND `returntime`IS NULL",[id])
+            if row:
+                if row[0][1]==token["userid"]:
+                    query(db,"UPDATE `bookborrow` SET `returntime`=%s WHERE `id`=%s",[time(),row[0][0]])
+                    return returnbook(message="rent delete success")
+                else:
+                    raise Exception("permission denied")
+            else:
+                raise Exception("rent not exists")
         else:
             raise Exception("unauthorized user")
 
@@ -168,5 +283,8 @@ class Mutation(graphene.ObjectType):
     user=getuser.Field()
     # user=getbooklist.Field()
     insertBook=newbook.Field()
+    removeBook=deletebook.Field()
+    insertRent=borrowbook.Field()
+    removeRent=returnbook.Field()
 
 schema=graphene.Schema(query=Query,mutation=Mutation)
