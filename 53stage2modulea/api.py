@@ -112,11 +112,10 @@ class getuser(graphene.Mutation):
 
 # --------------- api 05 ---------------
 class getbooklist(graphene.Mutation):
-    pass
     id=graphene.String()
-    email=graphene.String()
-    username=graphene.String()
-    role=graphene.String()
+    created_at=graphene.String()
+    name=graphene.String()
+    book=graphene.ObjectType()
 
     class Arguments:
         pass
@@ -129,7 +128,16 @@ class getbooklist(graphene.Mutation):
 
         if token:
             row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[token["id"]])[0]
-            return getuser(id=row[0],email=row[1],username=row[3],role=row[4])
+            return [
+                getbooklist(
+                    id=data[0],
+                    created_at=data[1],
+                    book={
+                        "id": data[3],
+                        "name": data[2]
+                    }
+                ) for data in row
+            ]
         else:
             raise Exception("unauthorized user")
 
@@ -281,7 +289,7 @@ class Mutation(graphene.ObjectType):
     logout=signout.Field()
     register=signup.Field()
     user=getuser.Field()
-    # user=getbooklist.Field()
+    rents=getbooklist.Field()
     insertBook=newbook.Field()
     removeBook=deletebook.Field()
     insertRent=borrowbook.Field()
