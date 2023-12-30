@@ -16,6 +16,7 @@ urlpatterns=[
     # 自用
     path("chclass/",include("chclass.url"),name="chclass"), # chclass
     path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
+    path("tutorial/",include("tutorial.url"),name="tutorial"), # tutorial
 
     # 專案
     path("project005/",include("project005.url"),name="project005"), # project005

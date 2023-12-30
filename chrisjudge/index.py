@@ -172,7 +172,9 @@ def logout(request,token):
 @api_view(["GET"])
 def logincheck(request):
     try:
-        token=request.headers.get("Authorization").split("Bearer ")[1]
+        token=request.headers.get("Authorization").split("Bearer ")
+        if token:
+            token=token[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
             userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])[0]
@@ -182,6 +184,11 @@ def logincheck(request):
                     "userid": userrow[0],
                     "permission": userrow[4],
                 }
+            },status.HTTP_200_OK)
+        else:
+            return Response({
+                "success": True,
+                "data": ""
             },status.HTTP_200_OK)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
