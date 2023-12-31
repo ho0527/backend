@@ -18,24 +18,31 @@ from google.auth.transport import requests
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
 
-def usercheck(data):
+def signincheck(data):
     try:
         header=data.headers.get("Authorization")
         if header:
             row=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if row:
                 return {
-                    "status": "success"
+                    "success": True,
+                    "data": row[0][0]
                 }
             else:
                 return {
-                    "status": "unauthenticated",
-                    "message": "invalid token"
+                    "success": False,
+                    "data": {
+                        "status": "unauthenticated",
+                        "message": "invalid token"
+                    }
                 }
         else:
             return {
-                "status": "unauthenticated",
-                "message": "missing token"
+                "success": False,
+                "data":{
+                    "status": "unauthenticated",
+                    "message": "missing token"
+                }
             }
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")

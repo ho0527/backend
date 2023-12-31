@@ -53,3 +53,18 @@ def gettodolist(request):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["DELETE"])
+def deletetodo(request,id):
+    try:
+        query(db,"DELETE FROM `todo` WHERE `id`=%s",[id])
+
+        return Response({
+            "success": True,
+            "data": ""
+        },status.HTTP_200_OK)
+    except Exception as error:
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)

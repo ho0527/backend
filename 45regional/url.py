@@ -17,4 +17,5 @@ urlpatterns=[
 
     path("newtodo",todo.newtodo,name="newtodo"),
     path("gettodolist",todo.gettodolist,name="gettodolist"),
+    path("deletetodo/<str:id>",todo.deletetodo,name="deletetodo"),
 ]

@@ -17,7 +17,7 @@ from google.auth.transport import requests
 # 自創
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
-from ws2022modulec.function import usercheck
+from ws2022modulec.function import signincheck
 
 # main START
 db="ws2022modulec"
@@ -154,12 +154,14 @@ def signin(request):
 @api_view(["POST"])
 def signout(request):
     try:
-        check=usercheck(request)
-        if check["status"]=="success":
-            query(db,"DELETE FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
-            return Response(check,status.HTTP_200_OK)
+        check=signincheck(request)
+        if check["success"]:
+            query(db,"DELETE FROM `token` WHERE `token`=%s",[check["data"]])
+            return Response({
+                "status": "success",
+            },status.HTTP_200_OK)
         else:
-            return Response(check,status.HTTP_401_UNAUTHORIZED)
+            return Response(check["data"],status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
