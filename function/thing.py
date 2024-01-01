@@ -81,3 +81,9 @@ def uploadfile(path,file,name):
                 f.write(chunk)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] function uploadfile error: "+str(error),"")
+
+def randomname():
+    name=""
+    for i in range(35):
+        name=name+str("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[random.randint(0,61)])
+    return name

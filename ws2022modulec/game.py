@@ -16,13 +16,13 @@ from zipfile import *
 
 # 自創
 from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash,uploadfile
+from function.thing import *
 from ws2022modulec.function import signincheck
 
 # main START
 db="ws2022modulec"
 
-@api_view(["GET","POST","PUT","DELETE"])
+@api_view(["GET","POST"])
 def game(request):
     try:
         if request.method=="GET":
@@ -111,7 +111,7 @@ def game(request):
                     if check:
                         query(db,
                             "INSERT INTO `game`(`userid`,`thumbnailpath`,`gamepath`,`title`,`slug`,`description`,`version`,`createtime`,`updatetime`,`deletetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                            [usercheck["data"],None,"",title,slug,description,"",time(),time(),None]
+                            [usercheck["data"],None,"",title,slug,description,"0",time(),time(),None]
                         )
 
                         return Response({
@@ -131,10 +131,6 @@ def game(request):
                     },status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
-        elif request.method=="PUT":
-            pass
-        else:
-            pass
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -145,28 +141,70 @@ def game(request):
 @api_view(["POST"])
 def uploadgame(request,slug):
     try:
-        file=request.FILES["zipfile"]
-        token=request.FILES["token"]
+        try:
+            file=request.FILES["zipfile"]
+        except Exception as error:
+            return Response({
+                "status": "invalid",
+                "message": "request body is not valid",
+                "violations": {
+                    "zipfile": "required"
+                }
+            },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if token:
-            userrow=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[token])
-            if userrow:
-                userid=userrow[0][0]
-                if not file:
+        try:
+            token=request.POST["token"]
+        except Exception as error:
+            return Response({
+                "status": "unauthenticated",
+                "message": "missing token"
+            },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        if token and token!="":
+            tokenrow=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[token])
+            if tokenrow:
+                if file:
                     row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
                     if row:
-                        if userid!=row[0][1]:
-                            query(db,
-                                "INSERT INTO `game`(`userid`,`thumbnailpath`,`gamepath`,`title`,`slug`,`description`,`version`,`createtime`,`updatetime`,`deletetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                                ["",None,"",title,slug,description,"",time(),time(),None]
-                            )
+                        row=row[0]
+                        if tokenrow[0][1]==row[1]:
+                            try:
+                                # 上傳zip到./temp資料夾
+                                zipname=randomname()+os.path.splitext(file.name)[1]
+                                uploadfile("./upload/ws2022modulec",file,zipname)
+                                ziplink="./upload/ws2022modulec/"+zipname
 
-                            return Response({
-                                "status": "success",
-                                "slug": slug
-                            },status.HTTP_200_OK)
+                                # 解壓zip
+                                version=str(int(row[7])+1)
+                                filelink="./upload/ws2022modulec/"+(slug+"/"+version)
+                                with ZipFile(ziplink,"r") as zipfile:
+                                    zipfile.extractall(filelink)
+                                    filelist=zipfile.namelist()
+                                if os.path.getsize(ziplink)<=1048576:
+                                    os.remove(ziplink)
+                                    if "index.html" in filelist:
+                                        thumbnailpath=None
+                                        if "thumbnail.png" in filelist:
+                                            thumbnailpath=filelink+"/thumbnail.png"
+
+                                        query(db,"UPDATE `game` SET `thumbnailpath`=%s,`gamepath`=%s,`version`=%s,`updatetime`=%s WHERE `slug`=%s",[thumbnailpath,"/backend/media/ws2022modulec/"+(slug+"/"+version),version,time(),slug])
+
+                                        return Response({
+                                            "status": "success"
+                                        },status.HTTP_200_OK)
+                                    else:
+                                        return Response("Zip file extraction fails",status.HTTP_400_BAD_REQUEST)
+                                else:
+                                    return Response("File size to big",status.HTTP_400_BAD_REQUEST)
+                            except FileNotFoundError:
+                                return Response("Zip file extraction fails",status.HTTP_400_BAD_REQUEST)
+                            except BadZipFile:
+                                return Response("Zip file extraction fails",status.HTTP_400_BAD_REQUEST)
+                            except Exception as e:
+                                return Response("Unspecified IO error",status.HTTP_400_BAD_REQUEST)
                         else:
-                            return "User is not the author of the game."
+                            return Response("User is not the author of the game",status.HTTP_401_UNAUTHORIZED)
                     else:
                         return Response({
                             "status": "invalid",
@@ -181,21 +219,15 @@ def uploadgame(request,slug):
                         }
                     },status.HTTP_400_BAD_REQUEST)
             else:
-                return {
-                    "success": False,
-                    "data": {
-                        "status": "unauthenticated",
-                        "message": "invalid token"
-                    }
-                }
-        else:
-            return {
-                "success": False,
-                "data":{
+                return Response({
                     "status": "unauthenticated",
-                    "message": "missing token"
-                }
-            }
+                    "message": "invalid token"
+                },status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({
+                "status": "unauthenticated",
+                "message": "missing token"
+            },status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -203,7 +235,187 @@ def uploadgame(request,slug):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(["GET","PUT","DELETE"])
+def gameid(request,slug):
+    try:
+        if request.method=="GET":
+            page=request.GET.get("page")
+            size=request.GET.get("size")
+            sortby=request.GET.get("sortBy")
+            sorttype=request.GET.get("sortDir")
+            check=True
 
-@api_view(["GET"])
-def getgame(request):
-    pass
+            # 初始化 START
+            if not page:
+                page=0
+
+            if not size:
+                size=10
+
+            if not sortby:
+                sortby="title"
+
+            if not sorttype:
+                sorttype="asc"
+
+            page=int(page)
+            size=int(size)
+            # 初始化 END
+
+            # 驗證 START
+            if page<0:
+                check=False
+
+            if size<1:
+                check=False
+
+            if sortby!="title" or sortby!="popular" or sortby!="uploaddate":
+                check=False
+
+            if sorttype!="asc" or sorttype!="desc":
+                check=False
+            # 驗證 END
+
+            if check:
+                return Response({
+                    "success": True,
+                    "data": ""
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": True,
+                    "data": ""
+                },status.HTTP_200_OK)
+        elif request.method=="PUT":
+            data=json.loads(request.body)
+            title=data.get("title")
+            description=data.get("description")
+
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
+            usercheck=signincheck(request)
+            if usercheck["success"]:
+                if row:
+                    if usercheck["data"]==row[0][1]:
+                        invaliddata={}
+                        check=True
+                        if title==None or title=="":
+                            title=row[0][4]
+                        else:
+                            if len(title)<3:
+                                invaliddata["title"]="must be at least 3 characters long"
+                                check=False
+                            elif len(title)>60:
+                                invaliddata["title"]="must be at most 60 characters long"
+                                check=False
+
+                        if description==None or description=="":
+                            description=row[0][6]
+                        else:
+                            if len(description)>200:
+                                invaliddata["description"]="must be at most 200 characters long"
+                                check=False
+
+                        if check:
+                            query(db,"UPDATE `game` SET `title`=%s,`description`=%s,`updatetime`=%s WHERE `slug`=%s",[title,description,time(),slug])
+
+                            return Response({
+                                "status": "success"
+                            },status.HTTP_200_OK)
+                        else:
+                            return Response({
+                                "status": "invalid",
+                                "message": "request body is not valid",
+                                "violations": invaliddata
+                            },status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return Response({
+                            "status": "forbidden",
+                            "slug": "You are not the game author."
+                        },status.HTTP_401_UNAUTHORIZED)
+                else:
+                    return Response({
+                        "status": "invalid",
+                        "slug": "Game not exists."
+                    },status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
+        else:
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
+            usercheck=signincheck(request)
+            if usercheck["success"]:
+                if row:
+                    if usercheck["data"]==row[0][1]:
+                        query(db,"DELETE FROM `game` WHERE `slug`=%s",[slug])
+                        query(db,"DELETE FROM `score` WHERE `gameid`=%s",[row[0][0]])
+
+                        return Response("",status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "status": "forbidden",
+                            "slug": "You are not the game author."
+                        },status.HTTP_401_UNAUTHORIZED)
+                else:
+                    return Response({
+                        "status": "invalid",
+                        "slug": "Game not exists."
+                    },status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET","POST"])
+def score(request,slug):
+    try:
+        if request.method=="GET":
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
+            if row:
+                data=[]
+                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0][0]])
+                for i in range(len(scorerow)):
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[scorerow[0][1]])[0]
+                    data.append({
+                        "username": userrow[1],
+                        "score": scorerow[i][3],
+                        "timestamp": scorerow[i][4]
+                    })
+
+                return Response({
+                    "success": True,
+                    "data": data
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": "invalid",
+                    "slug": "Game not exists."
+                },status.HTTP_401_UNAUTHORIZED)
+        else:
+            data=json.loads(request.body)
+            score=data.get("score")
+
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
+            usercheck=signincheck(request)
+            if usercheck["success"]:
+                if row:
+                    query(db,"INSERT INTO `score`(`userid`,`gameid`,`score`,`createtime`)VALUES(%s,%s,%s,%s)",[usercheck["data"],row[0][0],score,time()])
+
+                    return Response({
+                        "status": "success"
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "status": "invalid",
+                        "slug": "Game not exists."
+                    },status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
