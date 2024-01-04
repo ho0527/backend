@@ -30,7 +30,9 @@ def game(request):
             size=request.GET.get("size")
             sortby=request.GET.get("sortBy")
             sorttype=request.GET.get("sortDir")
+
             check=True
+            data=[]
 
             # 初始化 START
             if not page:
@@ -56,23 +58,82 @@ def game(request):
             if size<1:
                 check=False
 
-            if sortby!="title" or sortby!="popular" or sortby!="uploaddate":
+            if sortby!="title" and sortby!="popular" and sortby!="uploaddate":
                 check=False
 
-            if sorttype!="asc" or sorttype!="desc":
+            if sorttype!="asc" and sorttype!="desc":
                 check=False
             # 驗證 END
 
             if check:
+                row=query(db,"SELECT*FROM `game` WHERE `version`!='0'")
+                for i in range(len(row)):
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[i][1]])
+                    scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[i][0]])
+                    data.append({
+                        "author": userrow[0][1],
+                        "slug": row[i][5],
+                        "title": row[i][4],
+                        "description": row[i][6],
+                        "thumbnail": row[i][2],
+                        "scoreCount": len(scorerow),
+                        "uploadTimestamp": row[i][9],
+                    })
+
+                for i in range(len(data)):
+                    for j in range(len(data)-i-1):
+                        if sortby=="title":
+                            if sorttype=="asc":
+                                if data[j]["title"]>data[j+1]["title"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+                            else:
+                                if data[j]["title"]<data[j+1]["title"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+                        elif sortby=="popular":
+                            if sorttype=="asc":
+                                if data[j]["scoreCount"]>data[j+1]["scoreCount"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+                            else:
+                                if data[j]["scoreCount"]<data[j+1]["scoreCount"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+                        else:
+                            if sorttype=="asc":
+                                if data[j]["uploadTimestamp"]>data[j+1]["uploadTimestamp"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+                            else:
+                                if data[j]["uploadTimestamp"]<data[j+1]["uploadTimestamp"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
+                                    temp=data[j]
+                                    data[j]=data[j+1]
+                                    data[j+1]=temp
+
+                maindata=[]
+                for i in range(page*size,(page+1)*size):
+                    try:
+                        maindata.append(data[i])
+                    except IndexError:
+                        break
+
                 return Response({
-                    "success": True,
-                    "data": ""
+                    "page": page,
+                    "size": len(maindata),
+                    "totalElements": len(row),
+                    "content": maindata
                 },status.HTTP_200_OK)
             else:
                 return Response({
-                    "success": True,
-                    "data": ""
-                },status.HTTP_200_OK)
+                    "status": "invaled",
+                    "message": "data error"
+                },status.HTTP_400_BAD_REQUEST)
         elif request.method=="POST":
             data=json.loads(request.body)
             title=data.get("title")
@@ -177,16 +238,15 @@ def uploadgame(request,slug):
 
                                 # 解壓zip
                                 version=str(int(row[7])+1)
-                                filelink="./upload/ws2022modulec/"+(slug+"/"+version)
                                 with ZipFile(ziplink,"r") as zipfile:
-                                    zipfile.extractall(filelink)
+                                    zipfile.extractall("./upload/ws2022modulec/"+(slug+"/"+version))
                                     filelist=zipfile.namelist()
                                 if os.path.getsize(ziplink)<=1048576:
                                     os.remove(ziplink)
                                     if "index.html" in filelist:
                                         thumbnailpath=None
                                         if "thumbnail.png" in filelist:
-                                            thumbnailpath=filelink+"/thumbnail.png"
+                                            thumbnailpath="/backend/media/ws2022modulec/"+(slug+"/"+version)+"/thumbnail.png"
 
                                         query(db,"UPDATE `game` SET `thumbnailpath`=%s,`gamepath`=%s,`version`=%s,`updatetime`=%s WHERE `slug`=%s",[thumbnailpath,"/backend/media/ws2022modulec/"+(slug+"/"+version),version,time(),slug])
 
@@ -239,53 +299,29 @@ def uploadgame(request,slug):
 def gameid(request,slug):
     try:
         if request.method=="GET":
-            page=request.GET.get("page")
-            size=request.GET.get("size")
-            sortby=request.GET.get("sortBy")
-            sorttype=request.GET.get("sortDir")
-            check=True
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
 
-            # 初始化 START
-            if not page:
-                page=0
+            if row:
+                row=row[0]
+                userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[1]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0]])
 
-            if not size:
-                size=10
-
-            if not sortby:
-                sortby="title"
-
-            if not sorttype:
-                sorttype="asc"
-
-            page=int(page)
-            size=int(size)
-            # 初始化 END
-
-            # 驗證 START
-            if page<0:
-                check=False
-
-            if size<1:
-                check=False
-
-            if sortby!="title" or sortby!="popular" or sortby!="uploaddate":
-                check=False
-
-            if sorttype!="asc" or sorttype!="desc":
-                check=False
-            # 驗證 END
-
-            if check:
                 return Response({
-                    "success": True,
-                    "data": ""
+                    "author": userrow[0][1],
+                    "slug": row[5],
+                    "title": row[4],
+                    "description": row[6],
+                    "gamePath": row[3],
+                    "thumbnail": row[2],
+                    "scoreCount": len(scorerow),
+                    "uploadTimestamp": row[9],
                 },status.HTTP_200_OK)
             else:
                 return Response({
-                    "success": True,
-                    "data": ""
-                },status.HTTP_200_OK)
+                    "status": "invaled",
+                    "message": "Game not found"
+                },status.HTTP_404_NOT_FOUND)
+
         elif request.method=="PUT":
             data=json.loads(request.body)
             title=data.get("title")
@@ -339,6 +375,7 @@ def gameid(request,slug):
                     },status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
+
         else:
             row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
             usercheck=signincheck(request)
