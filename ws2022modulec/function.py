@@ -16,7 +16,7 @@ from google.auth.transport import requests
 
 # 自創
 from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from function.thing import *
 
 def signincheck(data):
     try:
@@ -24,11 +24,20 @@ def signincheck(data):
         if header:
             row=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if row:
-                return {
-                    "success": True,
-                    "tokenid": row[0][1],
-                    "data": row[0][1]
-                }
+                if (datetime.datetime.now()-datetime.datetime.strptime(row[0][3],'%Y-%m-%d %H:%M:%S')).total_seconds()<3600:
+                    return {
+                        "success": True,
+                        "tokenid": row[0][0],
+                        "data": row[0][1]
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "data": {
+                            "status": "unauthenticated",
+                            "message": "invalid token"
+                        }
+                    }
             else:
                 return {
                     "success": False,

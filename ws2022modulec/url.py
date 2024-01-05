@@ -12,7 +12,7 @@ urlpatterns=[
     re_path("^api/v1/games$",game.game,name="game"),
     re_path("^api/v1/games/(?P<slug>[^\/]+)$",game.gameid,name="getgame"),
     re_path("^api/v1/games/(?P<slug>.+)/upload$",game.uploadgame,name="uploadgame"),
-    re_path("^api/v1/users/(?P<username>.+)$",index.signup,name="signup"),
+    re_path("^api/v1/users/(?P<username>.+)$",index.getuser,name="signup"),
     re_path("^api/v1/games/(?P<slug>.+)/scores$",game.score,name="signup"),
     re_path(".+",index.error404,name="404"),
 ]
