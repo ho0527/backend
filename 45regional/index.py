@@ -69,7 +69,7 @@ def login(request):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(["GET"])
+@api_view(["POST"])
 def logout(request,id):
     try:
         row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])

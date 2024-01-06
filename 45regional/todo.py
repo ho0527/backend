@@ -21,13 +21,13 @@ def newtodo(request):
     try:
         data=json.loads(request.body)
         title=data.get("title")
-        starthour=data.get("starthour")
-        endhour=data.get("endhour")
+        starttime=data.get("starttime")
+        endtime=data.get("endtime")
         deal=data.get("deal")
         priority=data.get("priority")
         description=data.get("description")
 
-        query(db,"INSERT INTO `todo`(`title`,`description`,`starttime`,`endtime`,`deal`,`priority`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[title,starthour,endhour,deal,priority,description,time()])
+        query(db,"INSERT INTO `todo`(`title`,`description`,`starttime`,`endtime`,`deal`,`priority`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[title,starttime,endtime,deal,priority,description,time()])
 
         return Response({
             "success": True,
@@ -48,6 +48,56 @@ def gettodolist(request):
             "success": True,
             "data": row
         },status.HTTP_200_OK)
+    except Exception as error:
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["PUT"])
+def edittodo(request,id):
+    try:
+        data=json.loads(request.body)
+        title=data.get("title")
+        starttime=data.get("starttime")
+        endtime=data.get("endtime")
+        deal=data.get("deal")
+        priority=data.get("priority")
+        description=data.get("description")
+
+        row=query(db,"SELECT*FROM `todo` WHERE `id`=%s",[id])
+
+        if row:
+            row=row[0]
+            if not title:
+                title=row[1]
+
+            if not starttime:
+                starttime=row[2]
+
+            if not endtime:
+                endtime=row[3]
+
+            if not deal:
+                deal=row[4]
+
+            if not priority:
+                priority=row[5]
+
+            if not description:
+                description=row[6]
+
+            query(db,"UPDATE `todo` SET `title`=%s,`starttime`=%s,`endtime`=%s,`deal`=%s,`priority`=%s,`description`=%s,`updatetime`=%s  WHERE `id`=%s",[title,starttime,endtime,deal,priority,description,time(),id])
+
+            return Response({
+                "success": True,
+                "data": "edit success:)"
+            },status.HTTP_200_OK)
+        else:
+            return Response({
+                "success": False,
+                "data": "todo not found"
+            },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         return Response({
             "success": False,

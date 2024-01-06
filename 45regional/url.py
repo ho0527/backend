@@ -1,21 +1,22 @@
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path,include,re_path
 
 from . import index
 from . import admin
 from . import todo
 
 urlpatterns=[
-    path("login",index.login,name="login"),
-    path("logout/<str:id>",index.logout,name="logout"),
+    re_path("^login$",index.login,name="login"),
+    re_path("^logout/(?P<id>.+)$",index.logout,name="logout"),
 
-    path("getuserlist",admin.getuserlist,name="getuserlist"),
-    path("getuser/<str:id>",admin.getuser,name="getuser"),
-    path("getlog",admin.log,name="getlog"),
-    path("signup",admin.signup,name="signup"),
-    path("editdeluser/<str:id>",admin.editdeluser,name="editdeluser"),
+    re_path("^getuserlist$",admin.getuserlist,name="getuserlist"),
+    re_path("^getuser/(?P<id>.+)$",admin.getuser,name="getuser"),
+    re_path("^getlog$",admin.log,name="getlog"),
+    re_path("^signup$",admin.signup,name="signup"),
+    re_path("^editdeluser/(?P<id>.+)$",admin.editdeluser,name="editdeluser"),
 
-    path("newtodo",todo.newtodo,name="newtodo"),
-    path("gettodolist",todo.gettodolist,name="gettodolist"),
-    path("deletetodo/<str:id>",todo.deletetodo,name="deletetodo"),
+    re_path("^newtodo$",todo.newtodo,name="newtodo"),
+    re_path("^gettodolist$",todo.gettodolist,name="gettodolist"),
+    re_path("^edittodo/(?P<id>.+)$",todo.edittodo,name="edittodo"),
+    re_path("^deletetodo/(?P<id>.+)$",todo.deletetodo,name="deletetodo"),
 ]
