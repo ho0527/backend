@@ -27,7 +27,7 @@ def newtodo(request):
         priority=data.get("priority")
         description=data.get("description")
 
-        query(db,"INSERT INTO `todo`(`title`,`description`,`starttime`,`endtime`,`deal`,`priority`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[title,starttime,endtime,deal,priority,description,time()])
+        query(db,"INSERT INTO `todo`(`title`,`starttime`,`endtime`,`deal`,`priority`,`description`,`createtime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[title,starttime,endtime,deal,priority,description,time()])
 
         return Response({
             "success": True,
