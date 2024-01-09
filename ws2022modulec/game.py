@@ -422,8 +422,7 @@ def score(request,slug):
                     })
 
                 return Response({
-                    "success": True,
-                    "data": data
+                    "scores": data
                 },status.HTTP_200_OK)
             else:
                 return Response({
