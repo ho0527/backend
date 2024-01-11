@@ -12,6 +12,7 @@ urlpatterns=[
     path("51nationalmoduled/",include("51nationalmoduled.url"),name="51nationalmoduled"), # 51nationalmoduled
     path("53regional/",include("53regional.url"),name="53regional"), # 53regional
     path("53stage2modulea/",include("53stage2modulea.url"),name="53stage2modulea"), # 53stage2modulea
+    path("54regional/",include("54regional.url"),name="54regional"), # 54regional
     path("worldskill2022modulec/",include("ws2022modulec.url"),name="ws2022modulec"), # worldskill2022modulec
 
     # 自用

@@ -10,13 +10,13 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key
 
 # main START
 
-def createdb(dbname):
-    return MySQLdb.connect(host="localhost",db=dbname,user="root",passwd="")
+def createdb(dbname,host="localhost",username="root",password=""):
+    return MySQLdb.connect(host=host,db=dbname,user=username,passwd=password)
 
-def query(dbname,query,data=None):
+def query(dbname,query,data=None,host="localhost",username="root",password=""):
     respone=None
     try:
-        db=createdb(dbname)
+        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password)
         cursor=db.cursor()
         cursor.execute(query,data)
         respone=cursor.fetchall()
