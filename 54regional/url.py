@@ -5,6 +5,7 @@ from . import index
 from . import admin
 from . import comment
 from . import room
+from . import food
 
 urlpatterns=[
     # question/
@@ -15,13 +16,20 @@ urlpatterns=[
     re_path(r"^editcomment/(?P<id>[^\/]+)$",comment.editcomment,name="editcomment"),
     re_path(r"^deletecomment/(?P<id>[^\/]+)$",comment.deletecomment,name="deletecomment"),
 
-    # room
+    # roomorder
     re_path(r"^getleftroom/(?P<date>[^\/]+)/(?P<month>[^\/]+)$",room.getleftroom,name="getleftroom"),
-    re_path(r"^getroomlist$",room.getroomlist,name="getroomlist"),
-    re_path(r"^getroom/(?P<id>[^\/]+)$",room.getroom,name="getroom"),
-    re_path(r"^newroom$",room.newroom,name="newroom"),
-    re_path(r"^editroom/(?P<id>[^\/]+)$",room.editroom,name="editroom"),
-    re_path(r"^deleteroom/(?P<id>[^\/]+)$",room.deleteroom,name="deleteroom"),
+    re_path(r"^getroomorderlist$",room.getroomorderlist,name="getroomorderlist"),
+    re_path(r"^getroomorder/(?P<id>[^\/]+)$",room.getroomorder,name="getroomorder"),
+    re_path(r"^newroomorder$",room.newroomorder,name="newroomorder"),
+    re_path(r"^editroomorder/(?P<id>[^\/]+)$",room.editroomorder,name="editroomorder"),
+    re_path(r"^deleteroomorder/(?P<id>[^\/]+)$",room.deleteroomorder,name="deleteroomorder"),
+
+    # food
+    re_path(r"^getfoodlist$",food.getfoodlist,name="getfoodlist"),
+    re_path(r"^getfood/(?P<id>[^\/]+)$",food.getfood,name="getfood"),
+    re_path(r"^newfood$",food.newfood,name="newfood"),
+    re_path(r"^editfood/(?P<id>[^\/]+)$",food.editfood,name="editfood"),
+    re_path(r"^deletefood/(?P<id>[^\/]+)$",food.deletefood,name="deletefood"),
 
     # admin
     re_path(r"^admindeletecomment/(?P<id>[^\/]+)$",admin.deletecomment,name="admindeletecomment"),

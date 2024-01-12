@@ -72,6 +72,7 @@ def pincomment(request,id):
 
         if row:
             if row[0][10]=="":
+                query(db,"UPDATE `comment` SET `pin`=''")
                 query(db,"UPDATE `comment` SET `pin`='true' WHERE `id`=%s",[id])
             else:
                 query(db,"UPDATE `comment` SET `pin`='' WHERE `id`=%s",[id])

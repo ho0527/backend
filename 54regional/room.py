@@ -22,39 +22,6 @@ from function.thing import *
 db="54regional"
 
 @api_view(["GET"])
-def getroom(request,id):
-    try:
-        row=query(db,"SELECT*FROM `roomorder` WHERE `id`=%s",[id])
-
-        if row:
-            row=row[0]
-            return Response({
-                "success": True,
-                "data": {
-                    "id": row[0],
-                    "image": row[1],
-                    "code": row[2],
-                    "username": row[3],
-                    "content": row[7],
-                    "email": row[5],
-                    "emailshow": row[6],
-                    "phone": row[7],
-                    "phoneshow": row[8]
-                }
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "success": False,
-                "data": "查無此留言"
-            },status.HTTP_404_NOT_FOUND)
-    except Exception as error:
-        printcolorhaveline("fail",error,"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["GET"])
 def getleftroom(request,date,month):
     try:
         data=[]
@@ -76,7 +43,9 @@ def getleftroom(request,date,month):
                 startdate=int(row[j][2].split("/")[2])
                 enddate=int(row[j][3].split("/")[2])
                 if startdate<=i+1 and i+1<=enddate:
-                    data[i][row[j][4]]=True
+                    bookroomlist=row[j][4].split(",")
+                    for k in range(len(bookroomlist)):
+                        data[i][bookroomlist[k]]=True
 
         return Response({
             "success": True,
@@ -90,41 +59,63 @@ def getleftroom(request,date,month):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def getroomlist(request):
+def getroomorder(request,id):
+    try:
+        row=query(db,"SELECT*FROM `roomorder` WHERE `id`=%s",[id])
+
+        if row:
+            row=row[0]
+            return Response({
+                "success": True,
+                "data": {
+                    "id": row[0],
+                    "no": row[1],
+                    "startdate": row[2],
+                    "enddate": row[3],
+                    "roomno": row[4],
+                    "username": row[5],
+                    "email": row[6],
+                    "phone": row[7],
+                    "totalprice": row[8],
+                    "deposit": row[9],
+                    "ps": row[10],
+                    "createtime": row[11],
+                    "updatetime": row[12]
+                }
+            },status.HTTP_200_OK)
+        else:
+            return Response({
+                "success": False,
+                "data": "查無此留言"
+            },status.HTTP_404_NOT_FOUND)
+    except Exception as error:
+        printcolorhaveline("fail",error,"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getroomorderlist(request):
     try:
         data=[]
-        row=query(db,"SELECT*FROM `roomorder` ORDER BY `createtime` DESC")
+        row=query(db,"SELECT*FROM `roomorder`")
 
         for i in range(len(row)):
-            email=row[i][5]
-            phone=row[i][7]
-            timedata="發表於: "+row[i][11]
-            delete=False
-
-            if row[i][6]=="":
-                email="未顯示"
-
-            if row[i][8]=="":
-                phone="未顯示"
-
-            if row[i][13]!=None:
-                delete=True
-                timedata=timedata+"，刪除於: "+row[i][13]
-            elif row[i][12]!="":
-                timedata=timedata+"，修改於: "+row[i][12]
-
             data.append({
                 "id": row[i][0],
-                "image": row[i][1],
-                "code": row[i][2],
-                "username": row[i][3],
-                "content": row[i][4],
-                "email": email,
-                "phone": phone,
-                "adminresponse": row[i][9],
-                "pin": row[i][10],
-                "timedata": timedata,
-                "delete": delete
+                "no": row[i][1],
+                "startdate": row[i][2],
+                "enddate": row[i][3],
+                "roomno": row[i][4],
+                "username": row[i][5],
+                "email": row[i][6],
+                "phone": row[i][7],
+                "totalprice": row[i][8],
+                "deposit": row[i][9],
+                "ps": row[i][10],
+                "createtime": row[i][11],
+                "updatetime": row[i][12]
             })
 
         return Response({
@@ -139,7 +130,7 @@ def getroomlist(request):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
-def newroom(request):
+def newroomorder(request):
     try:
         data=json.loads(request.body)
         startdate=data.get("startdate")
@@ -154,15 +145,17 @@ def newroom(request):
 
         row=query(db,"SELECT*FROM `roomorder`")
 
+        no=datetime.datetime.now().strftime("%Y%m%d")+str(len(row)+1).zfill(4)
+
         query(
             db,
             "INSERT INTO `roomorder`(`no`,`startdate`,`enddate`,`roomno`,`username`,`email`,`phone`,`totalprice`,`deposit`,`ps`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            [datetime.datetime.now().strftime("%Y%m%d")+str(len(row)+1).zfill(4),startdate,enddate,roomno[-1],username,email,phone,totalprice,deposit,ps,time(),""]
+            [no,startdate,enddate,roomno,username,email,phone,totalprice,deposit,ps,time(),""]
         )
 
         return Response({
             "success": True,
-            "data": ""
+            "data": no
         },status.HTTP_200_OK)
     except Exception as error:
         printcolorhaveline("fail",error,"")
@@ -172,52 +165,32 @@ def newroom(request):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["PUT"])
-def editroom(request,id):
+def editroomorder(request,id):
     try:
         data=json.loads(request.body)
-        image=data.get("image")
+        startdate=data.get("startdate")
+        enddate=data.get("enddate")
+        roomno=data.get("roomno")
         username=data.get("username")
         email=data.get("email")
-        emailshow=data.get("emailshow")
-        content=data.get("content")
         phone=data.get("phone")
-        phoneshow=data.get("phoneshow")
+        totalprice=data.get("totalprice")
+        deposit=data.get("deposit")
+        ps=data.get("ps")
 
         row=query(db,"SELECT*FROM `roomorder` WHERE `id`=%s",[id])
 
         if row:
-            if not re.match(r"^.+@.+\..+((\..+)+)?$",email):
-                return Response({
-                    "success": False,
-                    "errorkey": "email",
-                    "data": "email輸入錯誤(需要一個'@'及至少一個'.')"
-                },status.HTTP_400_BAD_REQUEST)
-            if not re.match(r"^[0-9]+((-([0-9]+)?)+)?$",phone):
-                return Response({
-                    "success": False,
-                    "errorkey": "phone",
-                    "data": "電話號碼輸入錯誤(只能為數字(或包含'-'))"
-                },status.HTTP_400_BAD_REQUEST)
-            else:
-                if emailshow:
-                    emailshow="checked"
-                else:
-                    emailshow=""
+            query(
+                db,
+                "UPDATE `roomorder` SET `startdate`=%s,`enddate`=%s,`roomno`=%s,`username`=%s,`email`=%s,`phone`=%s,`totalprice`=%s,`deposit`=%s,`ps`=%s,`updatetime`=%s WHERE `id`=%s",
+                [startdate,enddate,roomno,username,email,phone,totalprice,deposit,ps,time(),id]
+            )
 
-                if phoneshow:
-                    phoneshow="checked"
-                else:
-                    phoneshow=""
-                query(
-                    db,
-                    "UPDATE `roomorder` SET `image`=%s,`username`=%s,`content`=%s,`email`=%s,`emailshow`=%s,`phone`=%s,`phoneshow`=%s,`updatetime`=%s WHERE `id`=%s",
-                    [image,username,content,email,emailshow,phone,phoneshow,time(),id]
-                )
-
-                return Response({
-                    "success": True,
-                    "data": ""
-                },status.HTTP_200_OK)
+            return Response({
+                "success": True,
+                "data": ""
+            },status.HTTP_200_OK)
         else:
             return Response({
                 "success": False,
@@ -231,12 +204,12 @@ def editroom(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["DELETE"])
-def deleteroom(request,id):
+def deleteroomorder(request,id):
     try:
         row=query(db,"SELECT*FROM `roomorder` WHERE `id`=%s",[id])
 
         if row:
-            query(db,"UPDATE `roomorder` SET `deletetime`=%s WHERE `id`=%s",[time(),id])
+            query(db,"DELETE FROM `roomorder` WHERE `id`=%s",[id])
             return Response({
                 "success": True,
                 "data": ""
