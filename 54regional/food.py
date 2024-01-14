@@ -21,6 +21,31 @@ from function.thing import *
 # main START
 db="54regional"
 
+@api_view(["POST"])
+def newfoodorder(request):
+    try:
+        data=json.loads(request.body)
+        username=data.get("username")
+        orderdata=data.get("orderdata")
+        totalprice=data.get("totalprice")
+
+        query(
+            db,
+            "INSERT INTO `foodorder`(`username`,`orderdata`,`totalprice`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s)",
+            [username,orderdata,totalprice,time(),""]
+        )
+
+        return Response({
+            "success": True,
+            "data": ""
+        },status.HTTP_200_OK)
+    except Exception as error:
+        printcolorhaveline("fail",error,"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(["GET"])
 def getfood(request,id):
     try:

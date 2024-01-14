@@ -35,7 +35,7 @@ def getcomment(request,id):
                     "image": row[1],
                     "code": row[2],
                     "username": row[3],
-                    "content": row[7],
+                    "content": row[4],
                     "email": row[5],
                     "emailshow": row[6],
                     "phone": row[7],

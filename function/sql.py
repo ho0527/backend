@@ -10,13 +10,13 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key
 
 # main START
 
-def createdb(dbname,host="localhost",username="root",password=""):
-    return MySQLdb.connect(host=host,db=dbname,user=username,passwd=password)
+def createdb(dbname,host="localhost",username="root",password="",port="3306"):
+    return MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
 
-def query(dbname,query,data=None,host="localhost",username="root",password=""):
+def query(dbname,query,data=None,host="localhost",username="root",password="",port=3306):
     respone=None
     try:
-        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password)
+        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
         cursor=db.cursor()
         cursor.execute(query,data)
         respone=cursor.fetchall()
@@ -24,7 +24,7 @@ def query(dbname,query,data=None,host="localhost",username="root",password=""):
         printcolorhaveline("green","use query function SUCCESS","")
     except Exception as error:
         printcolorhaveline("fail","[ERROR] use query function error "+str(error),"")
-        db=createdb(dbname)
+        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
     if cursor:
         cursor.close()
     if db:

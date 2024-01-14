@@ -27,7 +27,7 @@ urlpatterns=[
     # food
     re_path(r"^getfoodlist$",food.getfoodlist,name="getfoodlist"),
     re_path(r"^getfood/(?P<id>[^\/]+)$",food.getfood,name="getfood"),
-    re_path(r"^newfood$",food.newfood,name="newfood"),
+    re_path(r"^newfoodorder$",food.newfoodorder,name="newfoodorder"),
     re_path(r"^editfood/(?P<id>[^\/]+)$",food.editfood,name="editfood"),
     re_path(r"^deletefood/(?P<id>[^\/]+)$",food.deletefood,name="deletefood"),
 

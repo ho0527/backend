@@ -2,74 +2,54 @@
 import bcrypt
 import hashlib
 import json
-import os
 import random
 import re
+import google.oauth2.id_token
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
-from django.utils.text import get_valid_filename
 from django.views.decorators.http import require_http_methods
 from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 # 自創
 from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash,uploadfile
-from ws2022modulec.function import signincheck
+from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from .function import signincheck
 
 # main START
-db="chrisjudge"
+db="50nationalmodulea"
 
-@api_view(["GET"])
-def getquestionlist(request):
+@api_view(["POST"])
+def signin(request):
     try:
-        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
-        if userrow:
-            userid=userrow[0][1]
-            row=query(db,"SELECT*FROM `question`")
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"查詢題目",time()])
+        data=json.loads(request.body)
+        username=data.get("username")
+        password=data.get("password")
+
+        row=query(db,"SELECT*FROM `user` WHERE `username`=%sAND`password`=%s",[username,password])
+
+        if row:
+            token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],"登入系統",time()])
 
             return Response({
                 "success": True,
-                "data": row
+                "data": {
+                    0: row[0][0],
+                    1: row[0][1],
+                    2: row[0][3],
+                    "token": token,
+                }
             },status.HTTP_200_OK)
         else:
             return Response({
-                "success": False,
-                "data": "請先登入!"
-            },status.HTTP_403_FORBIDDEN)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["GET"])
-def getquestion(request,id):
-    try:
-        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
-        if userrow:
-            userid=userrow[0][1]
-            row=query(db,"SELECT*FROM `question` WHERE `id`=%s",[id])
-            if row:
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"查詢題目id: "+str(id),time()])
-
-                return Response({
-                    "success": True,
-                    "data": row[0]
-                },status.HTTP_200_OK)
-            else:
-                return Response({
-                    "success": False,
-                    "data": "查無此題目!"
-                },status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({
-                "success": False,
-                "data": "請先登入!"
-            },status.HTTP_403_FORBIDDEN)
+                "status": "invalid",
+                "message": "[WARNING]username or password error"
+            },status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -78,32 +58,30 @@ def getquestion(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
-def newquestion(request):
+def signup(request):
     try:
         data=json.loads(request.body)
-        title=data.get("title")
-        description=data.get("description")
-        tag=data.get("tag")
-        input=data.get("input")
-        output=data.get("output")
-        maxruntime=data.get("maxruntime")
+        username=data.get("username")
+        password=data.get("password")
 
-        token=request.headers.get("Authorization").split("Bearer ")[1]
-        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
-        if userrow:
-            userid=userrow[0][1]
-            query(db,"INSERT INTO `question`(`userid`,`title`,`description`,`tag`,`input`,`output`,`maxruntime`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",[userid,title,description,tag,input,output,maxruntime,time(),time()])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"新增題目",time()])
+        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+
+        if not row:
+            query(db,"INSERT INTO `user`(`username`,`password`,`permission`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s)",[username,password,"1",time(),time()])
+            row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+            token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],"註冊系統",time()])
 
             return Response({
-                "success": True,
-                "data": ""
+                "status": "success",
+                "token": token
             },status.HTTP_200_OK)
         else:
             return Response({
-                "success": False,
-                "data": "請先登入!"
-            },status.HTTP_403_FORBIDDEN)
+                "status": "invalid",
+                "message": "[WARNING]user already exist"
+            },status.HTTP_409_CONFLICT)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -111,57 +89,19 @@ def newquestion(request):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(["PUT"])
-def editquestion(request,id):
+
+@api_view(["POST"])
+def signout(request):
     try:
-        data=json.loads(request.body)
-        title=data.get("title")
-        description=data.get("description")
-        tag=data.get("tag")
-        input=data.get("input")
-        output=data.get("output")
-        maxruntime=data.get("maxruntime")
-
-        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
-        if userrow:
-            userid=userrow[0][1]
-            query(db,"UPDATE `question` SET `title`=%s,`description`=%s,`tag`=%s,`input`=%s,`output`=%s,`maxruntime`=%s,`updatetime`=%s WHERE `id`=%s",[title,description,tag,input,output,maxruntime,time(),id])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"修改題目id: "+id,time()])
-
+        check=signincheck(request)
+        if check["success"]:
+            query(db,"DELETE FROM `token` WHERE `id`=%s",[check["tokenid"]])
             return Response({
                 "success": True,
                 "data": ""
             },status.HTTP_200_OK)
         else:
-            return Response({
-                "success": False,
-                "data": "請先登入!"
-            },status.HTTP_403_FORBIDDEN)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["DELETE"])
-def delquestion(request,id):
-    try:
-        userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
-        if userrow:
-            userid=userrow[0][1]
-            query(db,"DELETE FROM `question` WHERE `id`=%s",[id])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"刪除題目id: "+id,time()])
-
-            return Response({
-                "success": True,
-                "data": ""
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "success": False,
-                "data": "請先登入!"
-            },status.HTTP_403_FORBIDDEN)
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -170,29 +110,56 @@ def delquestion(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def getuserlist(request):
+def getuser(request,username):
     try:
-        token=request.headers.get("Authorization").split("Bearer ")[1]
-        row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
+        check=signincheck(request)
+        if check["success"]:
+            self=True
+        else:
+            self=False
+
+        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
         if row:
-            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
-            if int(loginuserrow[0][4])>=4:
-                userrow=query(db,"SELECT*FROM `user`")
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"查詢使用者列表",time()])
-                return Response({
-                    "success": True,
-                    "data": userrow
-                },status.HTTP_200_OK)
+            row=row[0]
+            authorgamelist=[]
+            scorelist=[]
+            if self:
+                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row[0]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
             else:
-                return Response({
-                    "success": False,
-                    "data": "權限不足"
-                },status.HTTP_403_FORBIDDEN)
+                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row[0]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
+
+            for i in range(len(gamerow)):
+                authorgamelist.append({
+                    "slug": gamerow[i][5],
+                    "title": gamerow[i][4],
+                    "description": gamerow[i][6]
+                })
+
+            for i in range(len(scorerow)):
+                gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[scorerow[i][2]])
+                scorelist.append({
+                    "game":{
+                        "slug": gamerow[0][5],
+                        "title": gamerow[0][4],
+                        "description": gamerow[0][6]
+                    },
+                    "score": scorerow[i][3],
+                    "timestamp": scorerow[i][4]
+                })
+
+            return Response({
+                "username": row[1],
+                "registerTimestamp": row[3],
+                "authoredGames": authorgamelist,
+                "highscores": scorelist
+            },status.HTTP_200_OK)
         else:
             return Response({
-                "success": False,
-                "data": "token不存在"
-            },status.HTTP_403_FORBIDDEN)
+                "status": "invalid",
+                "message": "user not found"
+            },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -200,30 +167,13 @@ def getuserlist(request):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(["GET"])
-def getlog(request):
+@api_view(["GET","POST","PUT","DELETE"])
+def error404(request):
     try:
-        token=request.headers.get("Authorization").split("Bearer ")[1]
-        row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
-        if row:
-            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
-            if int(loginuserrow[0][4])>=4:
-                log=query(db,"SELECT*FROM `log`")
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"獲取伺服器紀錄",time()])
-                return Response({
-                    "success": True,
-                    "data": log
-                },status.HTTP_200_OK)
-            else:
-                return Response({
-                    "success": False,
-                    "data": "權限不足"
-                },status.HTTP_403_FORBIDDEN)
-        else:
-            return Response({
-                "success": False,
-                "data": "token不存在"
-            },status.HTTP_403_FORBIDDEN)
+        return Response({
+            "success": False,
+            "data": "page not found"
+        },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
