@@ -22,9 +22,9 @@ from function.thing import *
 db="54regional"
 
 @api_view(["GET"])
-def getfood(request,id):
+def getfoodorder(request,id):
     try:
-        row=query(db,"SELECT*FROM `food` WHERE `id`=%s",[id])
+        row=query(db,"SELECT*FROM `foodorder` WHERE `id`=%s",[id])
 
         if row:
             row=row[0]
@@ -32,10 +32,11 @@ def getfood(request,id):
                 "success": True,
                 "data": {
                     "id": row[0],
-                    "name": row[1],
-                    "price": row[2],
-                    "createtime": row[3],
-                    "updatetime": row[4]
+                    "username": row[1],
+                    "orderdata": row[2],
+                    "totalprice": row[3],
+                    "createtime": row[4],
+                    "updatetime": row[5]
                 }
             },status.HTTP_200_OK)
         else:
@@ -51,19 +52,20 @@ def getfood(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def getfoodlist(request):
+def getfoodorderlist(request):
     try:
         data=[]
-        row=query(db,"SELECT*FROM `food`")
+        row=query(db,"SELECT*FROM `foodorder`")
 
         for i in range(len(row)):
             data.append({
-                "id": row[i][0],
-                "name": row[i][1],
-                "price": row[i][2],
-                "createtime": row[i][3],
-                "updatetime": row[i][4]
-            })
+                    "id": row[i][0],
+                    "username": row[i][1],
+                    "orderdata": row[i][2],
+                    "totalprice": row[i][3],
+                    "createtime": row[i][4],
+                    "updatetime": row[i][5]
+                })
 
         return Response({
             "success": True,
@@ -77,31 +79,23 @@ def getfoodlist(request):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["POST"])
-def newfood(request):
+def newfoodorder(request):
     try:
         data=json.loads(request.body)
-        name=data.get("name")
-        price=data.get("price")
+        username=data.get("username")
+        orderdata=data.get("orderdata")
+        totalprice=data.get("totalprice")
 
-        row=query(db,"SELECT*FROM `food` WHERE `name`=%s",[name])
+        query(
+            db,
+            "INSERT INTO `foodorder`(`username`,`orderdata`,`totalprice`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s)",
+            [username,orderdata,totalprice,time(),""]
+        )
 
-        if not row:
-            query(
-                db,
-                "INSERT INTO `food`(`name`,`price`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s)",
-                [name,price,time(),""]
-            )
-
-            return Response({
-                "success": True,
-                "data": ""
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "success": False,
-                "errorkey": "name",
-                "data": "名稱已存在"
-            },status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "success": True,
+            "data": ""
+        },status.HTTP_200_OK)
     except Exception as error:
         printcolorhaveline("fail",error,"")
         return Response({
@@ -110,35 +104,19 @@ def newfood(request):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["PUT"])
-def editfood(request,id):
+def editfoodorder(request,id):
     try:
         data=json.loads(request.body)
-        name=data.get("name")
-        price=data.get("price")
+        username=data.get("username")
+        orderdata=data.get("orderdata")
+        totalprice=data.get("totalprice")
 
-        row=query(db,"SELECT*FROM `food` WHERE `id`=%s",[id])
+        query(db,"UPDATE `foodorder` SET `username`=%s,`orderdata`=%s,`totalprice`=%s,`updatetime`=%s WHERE `id`=%s",[username,orderdata,totalprice,time(),id])
 
-        if row:
-            namcheckrow=query(db,"SELECT*FROM `food` WHERE `name`=%s",[name])
-            if not namcheckrow or namcheckrow[0][0]:
-                query(db,"UPDATE `food` SET `name`=%s,`price`=%s,`updatetime`=%s WHERE `id`=%s",[name,price,time(),id])
-
-                return Response({
-                    "success": True,
-                    "data": ""
-                },status.HTTP_200_OK)
-            else:
-                return Response({
-                    "success": False,
-                    "errorkey": "name",
-                    "data": "名稱已存在"
-                },status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({
-                "success": False,
-                "errorkey": "all",
-                "data": "查無此食物"
-            },status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "success": True,
+            "data": ""
+        },status.HTTP_200_OK)
     except Exception as error:
         printcolorhaveline("fail",error,"")
         return Response({
@@ -147,12 +125,12 @@ def editfood(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["DELETE"])
-def deletefood(request,id):
+def deletefoodorder(request,id):
     try:
-        row=query(db,"SELECT*FROM `food` WHERE `id`=%s",[id])
+        row=query(db,"SELECT*FROM `foodorder` WHERE `id`=%s",[id])
 
         if row:
-            query(db,"DELETE FROM `food` WHERE `id`=%s",[id])
+            query(db,"DELETE FROM `foodorder` WHERE `id`=%s",[id])
             return Response({
                 "success": True,
                 "data": ""
@@ -160,7 +138,7 @@ def deletefood(request,id):
         else:
             return Response({
                 "success": False,
-                "data": "查無此留言"
+                "data": "查無此訂餐"
             },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail",error,"")
