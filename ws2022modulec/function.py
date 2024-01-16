@@ -21,6 +21,7 @@ from function.thing import *
 def signincheck(data):
     try:
         header=data.headers.get("Authorization")
+        print("header="+str(header))
         if header:
             row=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if row:
