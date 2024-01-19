@@ -16,6 +16,36 @@ from function.thing import printcolor,printcolorhaveline,time,switch_key
 # main START
 db="45regional"
 
+@api_view(["GET"])
+def gettodo(request,id):
+    try:
+        row=query(db,"SELECT*FROM `todo` WHERE `id`=%s",[id])
+
+        return Response({
+            "success": True,
+            "data": row[0]
+        },status.HTTP_200_OK)
+    except Exception as error:
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def gettodolist(request):
+    try:
+        row=query(db,"SELECT*FROM `todo`")
+
+        return Response({
+            "success": True,
+            "data": row
+        },status.HTTP_200_OK)
+    except Exception as error:
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(["POST"])
 def newtodo(request):
     try:
@@ -32,21 +62,6 @@ def newtodo(request):
         return Response({
             "success": True,
             "data": "新增成功"
-        },status.HTTP_200_OK)
-    except Exception as error:
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["GET"])
-def gettodolist(request):
-    try:
-        row=query(db,"SELECT*FROM `todo`")
-
-        return Response({
-            "success": True,
-            "data": row
         },status.HTTP_200_OK)
     except Exception as error:
         return Response({
@@ -87,7 +102,7 @@ def edittodo(request,id):
             if not description:
                 description=row[6]
 
-            query(db,"UPDATE `todo` SET `title`=%s,`starttime`=%s,`endtime`=%s,`deal`=%s,`priority`=%s,`description`=%s,`updatetime`=%s  WHERE `id`=%s",[title,starttime,endtime,deal,priority,description,time(),id])
+            query(db,"UPDATE `todo` SET `title`=%s,`starttime`=%s,`endtime`=%s,`deal`=%s,`priority`=%s,`description`=%s,`updatetime`=%s WHERE `id`=%s",[title,starttime,endtime,deal,priority,description,time(),id])
 
             return Response({
                 "success": True,

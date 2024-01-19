@@ -143,14 +143,14 @@ def newroomorder(request):
         deposit=data.get("deposit")
         ps=data.get("ps")
 
-        row=query(db,"SELECT*FROM `roomorder`")
+        row=query(db,"SELECT*FROM `roomorder` WHERE `createtime`=%s",[datetime.datetime.now().strftime("%Y-%m-%d")])
 
         no=datetime.datetime.now().strftime("%Y%m%d")+str(len(row)+1).zfill(4)
 
         query(
             db,
-            "INSERT INTO `roomorder`(`no`,`startdate`,`enddate`,`roomno`,`username`,`email`,`phone`,`totalprice`,`deposit`,`ps`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            [no,startdate,enddate,roomno,username,email,phone,totalprice,deposit,ps,time(),""]
+            "INSERT INTO `roomorder`(`no`,`startdate`,`enddate`,`roomno`,`username`,`email`,`phone`,`totalprice`,`deposit`,`ps`,`createdate`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            [no,startdate,enddate,roomno,username,email,phone,totalprice,deposit,ps,datetime.datetime.now().strftime("%Y-%m-%d"),time(),""]
         )
 
         return Response({

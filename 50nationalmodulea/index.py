@@ -89,7 +89,6 @@ def signup(request):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 @api_view(["POST"])
 def signout(request):
     try:
