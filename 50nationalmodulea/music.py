@@ -17,10 +17,11 @@ from zipfile import *
 # 自創
 from function.sql import query,createdb
 from function.thing import *
-from ws2022modulec.function import signincheck
+from .function import signincheck
+from .initialize import *
 
 # main START
-db="ws2022modulec"
+db=SETTING["dbname"]
 
 @api_view(["GET","POST"])
 def game(request):

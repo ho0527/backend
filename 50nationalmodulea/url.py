@@ -11,11 +11,11 @@ urlpatterns=[
     re_path("^signup$",index.signup,name="signup"),
     re_path("^signout$",index.signout,name="signout"),
 
-    re_path("^getuser/(?P<userid>[^\/]+)$",index.signin,name="getuser"),
-    re_path("^getuserlist$",index.signin,name="getuserlist"),
-    re_path("^edituser/(?P<userid>[^\/]+)$",index.signin,name="edituser"),
-    re_path("^edituserpermission/(?P<userid>[^\/]+)$",index.signin,name="edituserpermission"),
-    re_path("^deluser/(?P<userid>[^\/]+)$",index.signin,name="deluser"),
+    re_path("^getuser/(?P<userid>[^\/]+)$",user.getuser,name="getuser"),
+    re_path("^getuserlist$",user.getuser,name="getuserlist"),
+    re_path("^edituser/(?P<userid>[^\/]+)$",user.edituser,name="edituser"),
+    re_path("^edituserpermission/(?P<userid>[^\/]+)$",user.getuser,name="edituserpermission"),
+    re_path("^deluser/(?P<userid>[^\/]+)$",user.deleteuser,name="deluser"),
 
     re_path("^newalbum$",index.signin,name="newalbum"),
     re_path("^getalbum/(?P<albumid>[^\/]+)$",index.signin,name="getalbum"),

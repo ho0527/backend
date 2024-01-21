@@ -18,9 +18,10 @@ from google.auth.transport import requests
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
 from .function import signincheck
+from .initialize import *
 
 # main START
-db="50nationalmodulea"
+db=SETTING["dbname"]
 
 @api_view(["POST"])
 def signin(request):

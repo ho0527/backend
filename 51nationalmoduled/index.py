@@ -16,9 +16,10 @@ from rest_framework.response import Response
 # 自創
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from .initialize import *
 
 # main START
-db="46nationalmoduled"
+db="51nationalmoduled"
 
 @api_view(["GET"])
 def searchtrain(request,startstaion,endstaion,traintype,getgodate):

@@ -19,30 +19,31 @@ from function.sql import query,createdb
 from function.thing import *
 from .initialize import *
 
-# main START
 db=SETTING["dbname"]
 
 def signincheck(data):
     try:
         header=data.headers.get("Authorization")
+
         if header:
-            row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
+            row=query(db,"SELECT*FROM `users` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if row:
                 return {
                     "success": True,
-                    "tokenid": row[0][0],
-                    "permission": row[0][3],
-                    "data": row[0][1]
+                    "userid": row[0][0],
+                    "data": ""
                 }
             else:
                 return {
                     "success": False,
-                    "data": "[WARNING]token error"
+                    "message": "MAS_INVALIED_TOKEN",
+                    "data": ""
                 }
         else:
             return {
                 "success": False,
-                "data": "[WARNING]no token login first"
+                "message": "MAS_INVALIED_TOKEN",
+                "data": ""
             }
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")

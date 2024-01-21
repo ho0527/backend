@@ -18,96 +18,10 @@ from google.auth.transport import requests
 from function.sql import query,createdb
 from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
 from .function import signincheck
+from .initialize import *
 
 # main START
-db="50nationalmodulea"
-
-@api_view(["POST"])
-def signin(request):
-    try:
-        data=json.loads(request.body)
-        username=data.get("username")
-        password=data.get("password")
-
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%sAND`password`=%s",[username,password])
-
-        if row:
-            token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],"登入系統",time()])
-
-            return Response({
-                "success": True,
-                "data": {
-                    0: row[0][0],
-                    1: row[0][1],
-                    2: row[0][3],
-                    "token": token,
-                }
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "status": "invalid",
-                "message": "[WARNING]username or password error"
-            },status.HTTP_401_UNAUTHORIZED)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["POST"])
-def signup(request):
-    try:
-        data=json.loads(request.body)
-        username=data.get("username")
-        password=data.get("password")
-
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-
-        if not row:
-            query(db,"INSERT INTO `user`(`username`,`password`,`permission`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s)",[username,password,"1",time(),time()])
-            row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-            token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],"註冊系統",time()])
-
-            return Response({
-                "status": "success",
-                "token": token
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "status": "invalid",
-                "message": "[WARNING]user already exist"
-            },status.HTTP_409_CONFLICT)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(["POST"])
-def signout(request):
-    try:
-        check=signincheck(request)
-        if check["success"]:
-            query(db,"DELETE FROM `token` WHERE `id`=%s",[check["tokenid"]])
-            return Response({
-                "success": True,
-                "data": ""
-            },status.HTTP_200_OK)
-        else:
-            return Response(check,status.HTTP_401_UNAUTHORIZED)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+db=SETTING["dbname"]
 
 @api_view(["GET"])
 def getuser(request,username):
@@ -167,13 +81,76 @@ def getuser(request,username):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(["GET","POST","PUT","DELETE"])
-def error404(request):
+@api_view(["PUT"])
+def edituser(request,id):
     try:
+        data=json.loads(request.body)
+        username=data.get("username")
+        password=data.get("password")
+
+        check=signincheck(request)
+        if check["success"]:
+            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])
+            if row:
+                usernameckeck=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+                if not usernameckeck or row[0][1]==usernameckeck[0][1]:
+                    if check["data"]==id:
+                        query(db,"UPDATE `user` SET `username`=%s,`password`=%s WHERE `id`=%s",[username,password,id])
+                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者",time()])
+                        return Response({
+                            "success": True,
+                            "data": ""
+                        },status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "success": False,
+                            "data": "[WARNING]no permission"
+                        },status.HTTP_403_FORBIDDEN)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]user not found"
+                    },status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]user not found"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_404_NOT_FOUND)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
             "success": False,
-            "data": "page not found"
-        },status.HTTP_404_NOT_FOUND)
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["DELETE"])
+def deleteuser(request,id):
+    try:
+        check=signincheck(request)
+        if check["success"]:
+            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])
+            if row:
+                if check["data"]==id or int(check["permission"])>=4:
+                    query(db,"DELETE FROM `user` WHERE `id`=%s",[id])
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"刪除使用者",time()])
+                    return Response({
+                        "success": True,
+                        "data": ""
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]no permission"
+                    },status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]user not found"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
