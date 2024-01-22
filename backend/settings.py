@@ -5,7 +5,7 @@ BASE_DIR=Path(__file__).resolve().parent.parent
 
 SECRET_KEY="django-insecure-a^w*952yu65u@npg-7-alzonm#0$y$#9+h#5gmlsvv7=v^46s4"
 
-DEBUG=False
+DEBUG=True
 
 ALLOWED_HOSTS=["*"]
 
@@ -17,6 +17,7 @@ INSTALLED_APPS=[
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_yasg"
 ]
 
 MIDDLEWARE=[
@@ -34,7 +35,7 @@ ROOT_URLCONF="backend.urls"
 TEMPLATES=[
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR,"template")],
         "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
@@ -88,6 +89,10 @@ CSRF_COOKIE_HTTPONLY=False
 
 GRAPHENE={
     "SCHEMA": "django_root.schema.schema"
+}
+
+SWAGGER_SETTINGS={
+    "DEFAULT_AUTO_SCHEMA_CLASS": "backend.config.swagger.CustomSwaggerAutoSchema",
 }
 
 MEDIA_URL="/media/"

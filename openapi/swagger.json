@@ -1,0 +1,21 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Your API",
+      "version": "v1",
+      "description": "Description of your API"
+    },
+    "paths": {
+      "/your/endpoint/": {
+        "get": {
+          "summary": "Summary of the endpoint",
+          "description": "Detailed description of the endpoint",
+          "responses": {
+            "200": {
+              "description": "Successful response"
+            }
+          }
+        }
+      }
+    }
+}
