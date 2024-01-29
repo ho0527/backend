@@ -32,9 +32,17 @@ def gettodo(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def gettodolist(request):
+def gettodolist(request,deal,priority):
     try:
-        row=query(db,"SELECT*FROM `todo`")
+        if deal!="all" and priority!="all":
+            row=query(db,"SELECT*FROM `todo` WHERE `deal`=%sAND`priority`=%s",[deal,priority])
+        elif deal!="all" and priority=="all":
+            row=query(db,"SELECT*FROM `todo` WHERE `deal`=%s",[deal])
+        elif deal=="all" and priority!="all":
+            row=query(db,"SELECT*FROM `todo` WHERE `priority`=%s",[priority])
+        else:
+            row=query(db,"SELECT*FROM `todo`")
+
 
         return Response({
             "success": True,

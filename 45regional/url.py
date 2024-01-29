@@ -16,7 +16,7 @@ urlpatterns=[
     re_path(r"^editdeluser/(?P<id>.+)$",admin.editdeluser,name="editdeluser"),
 
     re_path(r"^gettodo/(?P<id>.+)$",todo.gettodo,name="gettodo"),
-    re_path(r"^gettodolist$",todo.gettodolist,name="gettodolist"),
+    re_path(r"^gettodolist/(?P<deal>.+)/(?P<priority>.+)$",todo.gettodolist,name="gettodolist"),
     re_path(r"^newtodo$",todo.newtodo,name="newtodo"),
     re_path(r"^edittodo/(?P<id>.+)$",todo.edittodo,name="edittodo"),
     re_path(r"^deletetodo/(?P<id>.+)$",todo.deletetodo,name="deletetodo"),
