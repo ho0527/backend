@@ -38,6 +38,7 @@ urlpatterns=[
     # 自用
     path("chclass/",include("chclass.url"),name="chclass"), # chclass
     path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
+    path("dcbot/",include("dcbot.url"),name="dcbot"), # dcbot
     path("tutorial/",include("tutorial.url"),name="tutorial"), # tutorial
 
     # 專案
