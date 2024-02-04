@@ -84,6 +84,6 @@ def uploadfile(path,file,name):
 
 def randomname():
     name=""
-    for i in range(35):
+    for i in range(50):
         name=name+str("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[random.randint(0,61)])
     return name

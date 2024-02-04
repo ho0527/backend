@@ -11,7 +11,7 @@ urlpatterns=[
     re_path(r"^api/user/register$",user.signup,name="signup"),
 
     re_path(r"^api/house$",house.getposthouse,name="getposthouse"),
-    re_path(r"^api/house/:house_id$",index.searchtrain,name=""),
+    re_path(r"^api/house/:house_id$",house.gedhouse,name="geteditdeletehouse"),
     re_path(r"^api/user/house$",index.searchtrain,name=""),
     re_path(r"^api/application$",index.searchtrain,name=""),
     re_path(r"^api/application/:application_id$",index.searchtrain,name=""),

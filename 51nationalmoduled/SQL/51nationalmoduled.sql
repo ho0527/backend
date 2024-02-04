@@ -64,7 +64,7 @@ CREATE TABLE `houses` (
   `total_floor` mediumint(9) NOT NULL,
   `age` mediumint(9) NOT NULL,
   `address` text NOT NULL,
-  `publised_at` datetime NOT NULL DEFAULT current_timestamp()
+  `published_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- --------------------------------------------------------
@@ -74,7 +74,7 @@ CREATE TABLE `houses` (
 --
 
 CREATE TABLE `images` (
-  `houses_id` int(11) NOT NULL,
+  `house_id` int(11) NOT NULL,
   `sort_order` int(11) NOT NULL,
   `image` longtext NOT NULL,
   `is_cover` tinyint(1) NOT NULL
