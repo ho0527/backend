@@ -31,6 +31,7 @@ def signincheck(data):
                 return {
                     "success": True,
                     "userid": row[0][0],
+                    "userpermission": row[0][4],
                     "data": ""
                 }
             else:
