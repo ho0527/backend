@@ -7,30 +7,30 @@ from . import album
 from . import music
 
 urlpatterns=[
-    re_path("^signin$",index.signin,name="signin"),
-    re_path("^signup$",index.signup,name="signup"),
-    re_path("^signout$",index.signout,name="signout"),
+    re_path(r"^signin$",index.signin,name="signin"),
+    re_path(r"^signup$",index.signup,name="signup"),
+    re_path(r"^signout$",index.signout,name="signout"),
 
-    re_path("^getuser/(?P<userid>[^\/]+)$",user.getuser,name="getuser"),
-    re_path("^getuserlist$",user.getuser,name="getuserlist"),
-    re_path("^edituser/(?P<userid>[^\/]+)$",user.edituser,name="edituser"),
-    re_path("^edituserpermission/(?P<userid>[^\/]+)$",user.getuser,name="edituserpermission"),
-    re_path("^deluser/(?P<userid>[^\/]+)$",user.deleteuser,name="deluser"),
+    re_path(r"^getuser/(?P<userid>[^\/]+)$",user.getuser,name="getuser"),
+    re_path(r"^getuserlist$",user.getuserlist,name="getuserlist"),
+    re_path(r"^edituser/(?P<userid>[^\/]+)$",user.edituser,name="edituser"),
+    re_path(r"^edituserpermission/(?P<userid>[^\/]+)$",user.edituserpermission,name="edituserpermission"),
+    re_path(r"^deluser/(?P<userid>[^\/]+)$",user.deleteuser,name="deluser"),
 
-    re_path("^newalbum$",index.signin,name="newalbum"),
-    re_path("^getalbum/(?P<albumid>[^\/]+)$",index.signin,name="getalbum"),
-    re_path("^getalbumlist$",index.signin,name="getalbumlist"),
-    re_path("^editalbum/(?P<albumid>[^\/]+)$",index.signin,name="editalbum"),
-    re_path("^delalbum/(?P<albumid>[^\/]+)$",index.signin,name="delalbum"),
+    re_path(r"^newalbum$",index.signin,name="newalbum"),
+    re_path(r"^getalbum/(?P<albumid>[^\/]+)$",index.signin,name="getalbum"),
+    re_path(r"^getalbumlist$",index.signin,name="getalbumlist"),
+    re_path(r"^editalbum/(?P<albumid>[^\/]+)$",index.signin,name="editalbum"),
+    re_path(r"^delalbum/(?P<albumid>[^\/]+)$",index.signin,name="delalbum"),
 
-    re_path("^newmusic$",index.signin,name="newmusic"),
-    re_path("^getmusic/(?P<musicid>[^\/]+)$",index.signin,name="getmusic"),
-    re_path("^getmusiclist$",index.signin,name="getmusiclist"),
-    re_path("^editmusic/(?P<musicid>[^\/]+)$",index.signin,name="editmusic"),
-    re_path("^delmusic/(?P<musicid>[^\/]+)$",index.signin,name="delmusic"),
+    re_path(r"^newmusic$",index.signin,name="newmusic"),
+    re_path(r"^getmusic/(?P<musicid>[^\/]+)$",index.signin,name="getmusic"),
+    re_path(r"^getmusiclist$",index.signin,name="getmusiclist"),
+    re_path(r"^editmusic/(?P<musicid>[^\/]+)$",index.signin,name="editmusic"),
+    re_path(r"^delmusic/(?P<musicid>[^\/]+)$",index.signin,name="delmusic"),
 
-    re_path("^getlog$",album.game,name="getlog"),
-    re_path("^getapi$",album.game,name="getapi"),
+    re_path(r"^getlog$",album.getalbum,name="getlog"),
+    re_path(r"^getapi$",album.getalbum,name="getapi"),
 
-    re_path(".+",index.error404,name="404"),
+    re_path(r".+",index.error404,name="404"),
 ]

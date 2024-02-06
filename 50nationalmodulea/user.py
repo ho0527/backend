@@ -24,56 +24,68 @@ from .initialize import *
 db=SETTING["dbname"]
 
 @api_view(["GET"])
-def getuser(request,username):
+def getuser(request,userid):
+    try:
+        row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
+        check=signincheck(request)
+        if check["success"]:
+            if row:
+                row=row[0]
+                if check["data"]==row[0][1] or int(check["permission"])>=4:
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"查詢使用者 id="+str(userid),time()])
+                    return Response({
+                        "success": True,
+                        "data": {
+                            "userid": row[0][0],
+                            "username": row[0][1],
+                            "userpermission": row[0][3],
+                        }
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]no permission"
+                    },status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]user not found"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getuserlist(request):
     try:
         check=signincheck(request)
         if check["success"]:
-            self=True
-        else:
-            self=False
-
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-        if row:
-            row=row[0]
-            authorgamelist=[]
-            scorelist=[]
-            if self:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
+            if int(check["permission"])>=4:
+                row=query(db,"SELECT*FROM `user`")
+                data=[]
+                for i in range(len(row)):
+                    data.push({
+                        "userid": row[i][0],
+                        "username": row[i][1],
+                        "userpermission": row[i][3],
+                    })
+                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"查詢使用者列表",time()])
+                return Response({
+                    "success": True,
+                    "data": data
+                },status.HTTP_200_OK)
             else:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
-
-            for i in range(len(gamerow)):
-                authorgamelist.append({
-                    "slug": gamerow[i][5],
-                    "title": gamerow[i][4],
-                    "description": gamerow[i][6]
-                })
-
-            for i in range(len(scorerow)):
-                gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[scorerow[i][2]])
-                scorelist.append({
-                    "game":{
-                        "slug": gamerow[0][5],
-                        "title": gamerow[0][4],
-                        "description": gamerow[0][6]
-                    },
-                    "score": scorerow[i][3],
-                    "timestamp": scorerow[i][4]
-                })
-
-            return Response({
-                "username": row[1],
-                "registerTimestamp": row[3],
-                "authoredGames": authorgamelist,
-                "highscores": scorelist
-            },status.HTTP_200_OK)
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]no permission"
+                },status.HTTP_403_FORBIDDEN)
         else:
-            return Response({
-                "status": "invalid",
-                "message": "user not found"
-            },status.HTTP_404_NOT_FOUND)
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -82,7 +94,7 @@ def getuser(request,username):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["PUT"])
-def edituser(request,id):
+def edituser(request,userid):
     try:
         data=json.loads(request.body)
         username=data.get("username")
@@ -90,13 +102,13 @@ def edituser(request,id):
 
         check=signincheck(request)
         if check["success"]:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])
+            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
             if row:
                 usernameckeck=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                 if not usernameckeck or row[0][1]==usernameckeck[0][1]:
-                    if check["data"]==id:
-                        query(db,"UPDATE `user` SET `username`=%s,`password`=%s WHERE `id`=%s",[username,password,id])
-                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者",time()])
+                    if check["data"]==userid and 4<=int(check["permission"]):
+                        query(db,"UPDATE `user` SET `username`=%s,`password`=%s WHERE `id`=%s",[username,password,userid])
+                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者 id="+str(userid),time()])
                         return Response({
                             "success": True,
                             "data": ""
@@ -109,7 +121,7 @@ def edituser(request,id):
                 else:
                     return Response({
                         "success": False,
-                        "data": "[WARNING]user not found"
+                        "data": "[WARNING]username already exist"
                     },status.HTTP_404_NOT_FOUND)
             else:
                 return Response({
@@ -117,7 +129,49 @@ def edituser(request,id):
                     "data": "[WARNING]user not found"
                 },status.HTTP_404_NOT_FOUND)
         else:
-            return Response(check,status.HTTP_404_NOT_FOUND)
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["PUT"])
+def edituserpermission(request,userid):
+    try:
+        data=json.loads(request.body)
+        permission=data.get("permission")
+
+        check=signincheck(request)
+        if check["success"]:
+            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
+            if row:
+                if 1<=int(permission) and int(permission)<=5:
+                    if 4<=int(check["permission"]):
+                        query(db,"UPDATE `user` SET `permission`=%s WHERE `id`=%s",[permission,userid])
+                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者權限 id="+str(userid),time()])
+                        return Response({
+                            "success": True,
+                            "data": ""
+                        },status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "success": False,
+                            "data": "[WARNING]no permission"
+                        },status.HTTP_403_FORBIDDEN)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]permission value error"
+                    },status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]user not found"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -126,15 +180,15 @@ def edituser(request,id):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["DELETE"])
-def deleteuser(request,id):
+def deleteuser(request,userid):
     try:
         check=signincheck(request)
         if check["success"]:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[id])
+            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
             if row:
-                if check["data"]==id or int(check["permission"])>=4:
-                    query(db,"DELETE FROM `user` WHERE `id`=%s",[id])
-                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"刪除使用者",time()])
+                if check["data"]==userid or int(check["permission"])>=4:
+                    query(db,"DELETE FROM `user` WHERE `id`=%s",[userid])
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"刪除使用者 id="+str(userid),time()])
                     return Response({
                         "success": True,
                         "data": ""
@@ -150,7 +204,7 @@ def deleteuser(request,id):
                     "data": "[WARNING]user not found"
                 },status.HTTP_404_NOT_FOUND)
         else:
-            return Response(check,status.HTTP_404_NOT_FOUND)
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({

@@ -40,9 +40,9 @@ def signin(request):
             return Response({
                 "success": True,
                 "data": {
-                    0: row[0][0],
-                    1: row[0][1],
-                    2: row[0][3],
+                    "userid": row[0][0],
+                    "username": row[0][1],
+                    "userpermission": row[0][3],
                     "token": token,
                 }
             },status.HTTP_200_OK)
@@ -75,14 +75,19 @@ def signup(request):
             query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],"註冊系統",time()])
 
             return Response({
-                "status": "success",
-                "token": token
+                "success": True,
+                "data": {
+                    "userid": row[0][0],
+                    "username": row[0][1],
+                    "userpermission": row[0][3],
+                    "token": token,
+                }
             },status.HTTP_200_OK)
         else:
             return Response({
-                "status": "invalid",
-                "message": "[WARNING]user already exist"
-            },status.HTTP_409_CONFLICT)
+                "success": False,
+                "data": "[WARNING]username already exist"
+            },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
@@ -102,64 +107,6 @@ def signout(request):
             },status.HTTP_200_OK)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["GET"])
-def getuser(request,username):
-    try:
-        check=signincheck(request)
-        if check["success"]:
-            self=True
-        else:
-            self=False
-
-        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-        if row:
-            row=row[0]
-            authorgamelist=[]
-            scorelist=[]
-            if self:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
-            else:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
-
-            for i in range(len(gamerow)):
-                authorgamelist.append({
-                    "slug": gamerow[i][5],
-                    "title": gamerow[i][4],
-                    "description": gamerow[i][6]
-                })
-
-            for i in range(len(scorerow)):
-                gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[scorerow[i][2]])
-                scorelist.append({
-                    "game":{
-                        "slug": gamerow[0][5],
-                        "title": gamerow[0][4],
-                        "description": gamerow[0][6]
-                    },
-                    "score": scorerow[i][3],
-                    "timestamp": scorerow[i][4]
-                })
-
-            return Response({
-                "username": row[1],
-                "registerTimestamp": row[3],
-                "authoredGames": authorgamelist,
-                "highscores": scorelist
-            },status.HTTP_200_OK)
-        else:
-            return Response({
-                "status": "invalid",
-                "message": "user not found"
-            },status.HTTP_404_NOT_FOUND)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
