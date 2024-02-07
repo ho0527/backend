@@ -17,11 +17,11 @@ urlpatterns=[
     re_path(r"^edituserpermission/(?P<userid>[^\/]+)$",user.edituserpermission,name="edituserpermission"),
     re_path(r"^deluser/(?P<userid>[^\/]+)$",user.deleteuser,name="deluser"),
 
-    re_path(r"^newalbum$",index.signin,name="newalbum"),
-    re_path(r"^getalbum/(?P<albumid>[^\/]+)$",index.signin,name="getalbum"),
-    re_path(r"^getalbumlist$",index.signin,name="getalbumlist"),
-    re_path(r"^editalbum/(?P<albumid>[^\/]+)$",index.signin,name="editalbum"),
-    re_path(r"^delalbum/(?P<albumid>[^\/]+)$",index.signin,name="delalbum"),
+    re_path(r"^newalbum$",album.newalbum,name="newalbum"),
+    re_path(r"^getalbum/(?P<albumid>[^\/]+)$",album.getalbum,name="getalbum"),
+    re_path(r"^getalbumlist$",album.getalbumlist,name="getalbumlist"),
+    re_path(r"^editalbum/(?P<albumid>[^\/]+)$",album.editalbum,name="editalbum"),
+    re_path(r"^delalbum/(?P<albumid>[^\/]+)$",album.deletealbum,name="delalbum"),
 
     re_path(r"^newmusic$",index.signin,name="newmusic"),
     re_path(r"^getmusic/(?P<musicid>[^\/]+)$",index.signin,name="getmusic"),

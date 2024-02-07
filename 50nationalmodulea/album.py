@@ -16,7 +16,7 @@ from google.auth.transport import requests
 
 # 自創
 from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from function.thing import *
 from .function import signincheck
 from .initialize import *
 
@@ -24,21 +24,21 @@ from .initialize import *
 db=SETTING["dbname"]
 
 @api_view(["GET"])
-def getalbum(request,userid):
+def getalbum(request,albumid):
     try:
-        row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
+        row=query(db,"SELECT*FROM `album` WHERE `id`=%s",[albumid])
         check=signincheck(request)
         if check["success"]:
             if row:
                 row=row[0]
-                if check["data"]==row[0][1] or int(check["permission"])>=4:
-                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"查詢使用者 id="+str(userid),time()])
+                if check["userid"]==row[0][1] or int(check["permission"])>=4:
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢使用者 id="+str(albumid),time()])
                     return Response({
                         "success": True,
                         "data": {
-                            "userid": row[0][0],
-                            "username": row[0][1],
-                            "userpermission": row[0][3],
+                            "albumid": row[0][0],
+                            "albumname": row[0][1],
+                            "albumpermission": row[0][3],
                         }
                     },status.HTTP_200_OK)
                 else:
@@ -49,7 +49,7 @@ def getalbum(request,userid):
             else:
                 return Response({
                     "success": False,
-                    "data": "[WARNING]user not found"
+                    "data": "[WARNING]album not found"
                 },status.HTTP_404_NOT_FOUND)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
@@ -61,20 +61,20 @@ def getalbum(request,userid):
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(["GET"])
-def getuserlist(request):
+def getalbumlist(request):
     try:
         check=signincheck(request)
         if check["success"]:
             if int(check["permission"])>=4:
-                row=query(db,"SELECT*FROM `user`")
+                row=query(db,"SELECT*FROM `album`")
                 data=[]
                 for i in range(len(row)):
                     data.push({
-                        "userid": row[i][0],
-                        "username": row[i][1],
-                        "userpermission": row[i][3],
+                        "albumid": row[i][0],
+                        "albumname": row[i][1],
+                        "albumpermission": row[i][3],
                     })
-                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"查詢使用者列表",time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢使用者列表",time()])
                 return Response({
                     "success": True,
                     "data": data
@@ -93,102 +93,28 @@ def getuserlist(request):
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(["PUT"])
-def edituser(request,userid):
+@api_view(["POST"])
+def newalbum(request):
     try:
-        data=json.loads(request.body)
-        username=data.get("username")
-        password=data.get("password")
+        title=request.POST["title"]
+        publisher=request.POST["publisher"]
+        publicdate=request.POST["publicdate"]
+        description=request.POST["description"]
+        albumartist=request.POST["albumartist"]
+        try:
+            covername=randomname()+os.path.splitext(request.FILES["cover"].name)[1]
+            uploadfile("./upload/50nationalmodulea",request.FILES["cover"],covername)
+            coverpath="/backend/media/50nationalmodulea/"+covername
+        except Exception as error:
+            coverpath=request.POST["cover"]
 
         check=signincheck(request)
         if check["success"]:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
-            if row:
-                usernameckeck=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-                if not usernameckeck or row[0][1]==usernameckeck[0][1]:
-                    if check["data"]==userid and 4<=int(check["permission"]):
-                        query(db,"UPDATE `user` SET `username`=%s,`password`=%s WHERE `id`=%s",[username,password,userid])
-                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者 id="+str(userid),time()])
-                        return Response({
-                            "success": True,
-                            "data": ""
-                        },status.HTTP_200_OK)
-                    else:
-                        return Response({
-                            "success": False,
-                            "data": "[WARNING]no permission"
-                        },status.HTTP_403_FORBIDDEN)
-                else:
-                    return Response({
-                        "success": False,
-                        "data": "[WARNING]username already exist"
-                    },status.HTTP_404_NOT_FOUND)
-            else:
-                return Response({
-                    "success": False,
-                    "data": "[WARNING]user not found"
-                },status.HTTP_404_NOT_FOUND)
-        else:
-            return Response(check,status.HTTP_401_UNAUTHORIZED)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["PUT"])
-def edituserpermission(request,userid):
-    try:
-        data=json.loads(request.body)
-        permission=data.get("permission")
-
-        check=signincheck(request)
-        if check["success"]:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
-            if row:
-                if 1<=int(permission) and int(permission)<=5:
-                    if 4<=int(check["permission"]):
-                        query(db,"UPDATE `user` SET `permission`=%s WHERE `id`=%s",[permission,userid])
-                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"更新使用者權限 id="+str(userid),time()])
-                        return Response({
-                            "success": True,
-                            "data": ""
-                        },status.HTTP_200_OK)
-                    else:
-                        return Response({
-                            "success": False,
-                            "data": "[WARNING]no permission"
-                        },status.HTTP_403_FORBIDDEN)
-                else:
-                    return Response({
-                        "success": False,
-                        "data": "[WARNING]permission value error"
-                    },status.HTTP_404_NOT_FOUND)
-            else:
-                return Response({
-                    "success": False,
-                    "data": "[WARNING]user not found"
-                },status.HTTP_404_NOT_FOUND)
-        else:
-            return Response(check,status.HTTP_401_UNAUTHORIZED)
-    except Exception as error:
-        printcolorhaveline("fail","[ERROR] "+str(error),"")
-        return Response({
-            "success": False,
-            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
-        },status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(["DELETE"])
-def deleteuser(request,userid):
-    try:
-        check=signincheck(request)
-        if check["success"]:
-            row=query(db,"SELECT*FROM `user` WHERE `id`=%s",[userid])
-            if row:
-                if check["data"]==userid or int(check["permission"])>=4:
-                    query(db,"DELETE FROM `user` WHERE `id`=%s",[userid])
-                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["data"],"刪除使用者 id="+str(userid),time()])
+            albumnameckeck=query(db,"SELECT*FROM `album` WHERE `title`=%s AND `deletetime` IS NULL",[title])
+            if not albumnameckeck:
+                if 4<=int(check["permission"]):
+                    query(db,"INSERT INTO `album`(`userid`,`coverpath`,`title`,`description`,`publisher`,`publicdate`,`albumartist`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",[check["userid"],coverpath,title,description,publisher,publicdate,albumartist,time(),""])
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"新增專輯",time()])
                     return Response({
                         "success": True,
                         "data": ""
@@ -201,7 +127,92 @@ def deleteuser(request,userid):
             else:
                 return Response({
                     "success": False,
-                    "data": "[WARNING]user not found"
+                    "data": "[WARNING]albumname already exist"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["PUT"])
+def editalbum(request,albumid):
+    try:
+        title=request.POST["title"]
+        publisher=request.POST["publisher"]
+        publicdate=request.POST["publicdate"]
+        description=request.POST["description"]
+        albumartist=request.POST["albumartist"]
+        try:
+            covername=randomname()+os.path.splitext(request.FILES["cover"].name)[1]
+            uploadfile("./upload/50nationalmodulea",request.FILES["cover"],covername)
+            coverpath="/backend/media/50nationalmodulea/"+covername
+        except Exception as error:
+            coverpath=request.POST["cover"]
+
+        check=signincheck(request)
+        if check["success"]:
+            row=query(db,"SELECT*FROM `album` WHERE `id`=%s",[albumid])
+            if row:
+                albumnameckeck=query(db,"SELECT*FROM `album` WHERE `title`=%s AND `deletetime` IS NULL",[title])
+                if not albumnameckeck or row[0][1]==albumnameckeck[0][1]:
+                    if 4<=int(check["permission"]):
+                        query(db,"UPDATE `album` SET `coverpath`=%s,`title`=%s,`description`=%s,`publisher`=%s,`publicdate`=%s,`albumartist`=%s,`updatetime`=%s WHERE `id`=%s",[coverpath,title,description,publisher,publicdate,albumartist,time(),albumid])
+                        query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"更新專輯 id="+str(albumid),time()])
+                        return Response({
+                            "success": True,
+                            "data": ""
+                        },status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "success": False,
+                            "data": "[WARNING]no permission"
+                        },status.HTTP_403_FORBIDDEN)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]albumname already exist"
+                    },status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]album not found"
+                },status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["DELETE"])
+def deletealbum(request,albumid):
+    try:
+        check=signincheck(request)
+        if check["success"]:
+            row=query(db,"SELECT*FROM `album` WHERE `id`=%s AND `deletetime` IS NULL",[albumid])
+            if row:
+                if int(check["permission"])>=4:
+                    query(db,"UPDATE `album` SET `deletetime`=%s WHERE `id`=%s",[time(),albumid])
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"刪除專輯 id="+str(albumid),time()])
+                    return Response({
+                        "success": True,
+                        "data": ""
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]no permission"
+                    },status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]album not found"
                 },status.HTTP_404_NOT_FOUND)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
