@@ -31,21 +31,15 @@ def getalbum(request,albumid):
         if check["success"]:
             if row:
                 row=row[0]
-                if check["userid"]==row[0][1] or int(check["permission"])>=4:
-                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢使用者 id="+str(albumid),time()])
-                    return Response({
-                        "success": True,
-                        "data": {
-                            "albumid": row[0][0],
-                            "albumname": row[0][1],
-                            "albumpermission": row[0][3],
-                        }
-                    },status.HTTP_200_OK)
-                else:
-                    return Response({
-                        "success": False,
-                        "data": "[WARNING]no permission"
-                    },status.HTTP_403_FORBIDDEN)
+                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢專輯 id="+str(albumid),time()])
+                return Response({
+                    "success": True,
+                    "data": {
+                        "albumid": row[0][0],
+                        "albumtitle": row[0][1],
+                        "albumpermission": row[0][3],
+                    }
+                },status.HTTP_200_OK)
             else:
                 return Response({
                     "success": False,
