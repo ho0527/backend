@@ -30,16 +30,52 @@ def getalbum(request,albumid):
         check=signincheck(request)
         if check["success"]:
             if row:
-                row=row[0]
-                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢專輯 id="+str(albumid),time()])
-                return Response({
-                    "success": True,
-                    "data": {
-                        "albumid": row[0][0],
-                        "albumtitle": row[0][1],
-                        "albumpermission": row[0][3],
-                    }
-                },status.HTTP_200_OK)
+                if row[0][1]==check["userid"] or 4<=int(check["permission"]):
+                    row=row[0]
+
+                    musicrow=query(db,"SELECT*FROM `music` WHERE `albumid`=%s",[albumid])
+                    musicdata=[]
+                    for i in range(len(row)):
+                        if musicrow[i][4]!=None:
+                            subtitle={
+                                "type": musicrow[i][8],
+                                "path": musicrow[i][4]
+                            }
+                        else:
+                            subtitle=None
+
+                        musicdata.push({
+                            "musicid": musicrow[i][0],
+                            "albumid": musicrow[i][2],
+                            "musicpath": musicrow[i][3],
+                            "title": musicrow[i][5],
+                            "artist": musicrow[i][6].split(","),
+                            "duration": musicrow[i][7],
+                            "subtitle": subtitle
+                        })
+
+
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢專輯 id="+str(albumid),time()])
+                    return Response({
+                        "success": True,
+                        "data": {
+                            "albumid": row[0],
+                            "albumcover": row[2],
+                            "title": row[3],
+                            "description": row[4],
+                            "attr": {
+                                "publisher": row[5],
+                                "publicdate": row[6]
+                            },
+                            "albumartist": row[7].split(","),
+                            "music": musicdata
+                        }
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]no permission"
+                    },status.HTTP_403_FORBIDDEN)
             else:
                 return Response({
                     "success": False,
@@ -59,25 +95,53 @@ def getalbumlist(request):
     try:
         check=signincheck(request)
         if check["success"]:
-            if int(check["permission"])>=4:
+            if 4<=int(check["permission"]):
                 row=query(db,"SELECT*FROM `album`")
-                data=[]
-                for i in range(len(row)):
-                    data.push({
-                        "albumid": row[i][0],
-                        "albumname": row[i][1],
-                        "albumpermission": row[i][3],
-                    })
-                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢使用者列表",time()])
-                return Response({
-                    "success": True,
-                    "data": data
-                },status.HTTP_200_OK)
             else:
-                return Response({
-                    "success": False,
-                    "data": "[WARNING]no permission"
-                },status.HTTP_403_FORBIDDEN)
+                row=query(db,"SELECT*FROM `album` WHERE `userid`=%s",check["userid"])
+
+            data=[]
+            for i in range(len(row)):
+                musicrow=query(db,"SELECT*FROM `music` WHERE `albumid`=%s",[row[i][0]])
+                musicdata=[]
+                for j in range(len(row)):
+                    if musicrow[j][4]!=None:
+                        subtitle={
+                            "type": musicrow[j][8],
+                            "path": musicrow[j][4]
+                        }
+                    else:
+                        subtitle=None
+
+                    musicdata.push({
+                        "musicid": musicrow[j][0],
+                        "albumid": musicrow[j][2],
+                        "musicpath": musicrow[j][3],
+                        "title": musicrow[j][5],
+                        "artist": musicrow[j][6].split(","),
+                        "duration": musicrow[j][7],
+                        "subtitle": subtitle
+                    })
+
+
+                data.push({
+                    "albumid": row[i][0],
+                    "albumcover": row[i][2],
+                    "title": row[i][3],
+                    "description": row[i][4],
+                    "attr": {
+                        "publisher": row[i][5],
+                        "publicdate": row[i][6]
+                    },
+                    "albumartist": row[i][7].split(","),
+                    "music": musicdata
+                })
+
+            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢專輯列表",time()])
+            return Response({
+                "success": True,
+                "data": data
+            },status.HTTP_200_OK)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
@@ -153,7 +217,7 @@ def editalbum(request,albumid):
             if row:
                 albumnameckeck=query(db,"SELECT*FROM `album` WHERE `title`=%s AND `deletetime` IS NULL",[title])
                 if not albumnameckeck or row[0][1]==albumnameckeck[0][1]:
-                    if 4<=int(check["permission"]):
+                    if row[0][0]==check["userid"] or 4<=int(check["permission"]):
                         query(db,"UPDATE `album` SET `coverpath`=%s,`title`=%s,`description`=%s,`publisher`=%s,`publicdate`=%s,`albumartist`=%s,`updatetime`=%s WHERE `id`=%s",[coverpath,title,description,publisher,publicdate,albumartist,time(),albumid])
                         query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"更新專輯 id="+str(albumid),time()])
                         return Response({
@@ -191,7 +255,7 @@ def deletealbum(request,albumid):
         if check["success"]:
             row=query(db,"SELECT*FROM `album` WHERE `id`=%s AND `deletetime` IS NULL",[albumid])
             if row:
-                if int(check["permission"])>=4:
+                if row[0][0]==check["userid"] or 4<=int(check["permission"]):
                     query(db,"UPDATE `album` SET `deletetime`=%s WHERE `id`=%s",[time(),albumid])
                     query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"刪除專輯 id="+str(albumid),time()])
                     return Response({

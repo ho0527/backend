@@ -32,8 +32,8 @@ def signincheck(data):
                     "success": True,
                     "tokenid": row[0][0],
                     "permission": row[0][3],
-                    "userid": row[0][1],
-                    "data": row[0][1]
+                    "userid": int(row[0][1]),
+                    "data": int(row[0][1])
                 }
             else:
                 return {

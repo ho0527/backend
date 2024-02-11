@@ -164,7 +164,7 @@ def edituserpermission(request,userid):
                     return Response({
                         "success": False,
                         "data": "[WARNING]permission value error"
-                    },status.HTTP_404_NOT_FOUND)
+                    },status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({
                     "success": False,

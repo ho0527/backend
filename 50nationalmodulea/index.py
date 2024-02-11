@@ -101,10 +101,47 @@ def signout(request):
         check=signincheck(request)
         if check["success"]:
             query(db,"DELETE FROM `token` WHERE `id`=%s",[check["tokenid"]])
+            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"登出系統",time()])
             return Response({
                 "success": True,
                 "data": ""
             },status.HTTP_200_OK)
+        else:
+            return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getlog(request):
+    try:
+        check=signincheck(request)
+        if check["success"]:
+            if 4<=check["permission"]:
+                row=query(db,"SELECT*FROM `log` ORDER BY `id` DESC")
+
+                data=[]
+                for i in range(min(len(row),500)):
+                    data.push({
+                        "id": row[i][0],
+                        "userid": row[i][1],
+                        "move": row[i][2],
+                        "movetime": row[i][3],
+                    })
+
+                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢伺服器紀錄",time()])
+                return Response({
+                    "success": True,
+                    "data": data
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]no permission"
+                },status.HTTP_403_FORBIDDEN)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:

@@ -30,16 +30,35 @@ def getmusic(request,musicid):
         check=signincheck(request)
         if check["success"]:
             if row:
-                row=row[0]
-                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢歌曲 id="+str(musicid),time()])
-                return Response({
-                    "success": True,
-                    "data": {
-                        "musicid": row[0][0],
-                        "musictitle": row[0][1],
-                        "musicpermission": row[0][3],
-                    }
-                },status.HTTP_200_OK)
+                if row[0][1]==check["userid"] or 4<=int(check["permission"]):
+                    row=row[0]
+
+                    if row[4]!=None:
+                        subtitle={
+                            "type": row[8],
+                            "path": row[4]
+                        }
+                    else:
+                        subtitle=None
+
+                    query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢歌曲 id="+str(musicid),time()])
+                    return Response({
+                        "success": True,
+                        "data": {
+                            "musicid": row[0],
+                            "albumid": row[2],
+                            "musicpath": row[3],
+                            "title": row[5],
+                            "artist": row[6].split(","),
+                            "duration": row[7],
+                            "subtitle": subtitle
+                        }
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "success": False,
+                        "data": "[WARNING]no permission"
+                    },status.HTTP_403_FORBIDDEN)
             else:
                 return Response({
                     "success": False,
@@ -59,25 +78,36 @@ def getmusiclist(request):
     try:
         check=signincheck(request)
         if check["success"]:
-            if int(check["permission"])>=4:
+            if 4<=int(check["permission"]):
                 row=query(db,"SELECT*FROM `music`")
-                data=[]
-                for i in range(len(row)):
-                    data.push({
-                        "musicid": row[i][0],
-                        "musicname": row[i][1],
-                        "musicpermission": row[i][3],
-                    })
-                query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢使用者列表",time()])
-                return Response({
-                    "success": True,
-                    "data": data
-                },status.HTTP_200_OK)
             else:
-                return Response({
-                    "success": False,
-                    "data": "[WARNING]no permission"
-                },status.HTTP_403_FORBIDDEN)
+                row=query(db,"SELECT*FROM `music` WHERE `userid`=%s",check["userid"])
+
+            data=[]
+            for i in range(len(row)):
+                if row[i][4]!=None:
+                    subtitle={
+                        "type": row[i][8],
+                        "path": row[i][4]
+                    }
+                else:
+                    subtitle=None
+
+                data.push({
+                    "musicid": row[i][0],
+                    "albumid": row[i][2],
+                    "musicpath": row[i][3],
+                    "title": row[i][5],
+                    "artist": row[i][6].split(","),
+                    "duration": row[i][7],
+                    "subtitle": subtitle
+                })
+
+            query(db,"INSERT INTO `log`(`userid`,`move`,`createtime`)VALUES(%s,%s,%s)",[check["userid"],"查詢歌曲列表",time()])
+            return Response({
+                "success": True,
+                "data": data
+            },status.HTTP_200_OK)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
