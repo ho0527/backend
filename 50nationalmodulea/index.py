@@ -48,8 +48,8 @@ def signin(request):
             },status.HTTP_200_OK)
         else:
             return Response({
-                "status": "invalid",
-                "message": "[WARNING]username or password error"
+                "success": False,
+                "data": "[WARNING]username or password error"
             },status.HTTP_401_UNAUTHORIZED)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
@@ -144,6 +144,57 @@ def getlog(request):
                 },status.HTTP_403_FORBIDDEN)
         else:
             return Response(check,status.HTTP_401_UNAUTHORIZED)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getapi(request):
+    try:
+        row=query(db,"SELECT*FROM `album`")
+
+        data=[]
+        for i in range(len(row)):
+            musicrow=query(db,"SELECT*FROM `music` WHERE `albumid`=%s",[row[i][0]])
+            musicdata=[]
+            for j in range(len(row)):
+                if musicrow[j][4]!=None:
+                    subtitle={
+                        "type": musicrow[j][8],
+                        "path": musicrow[j][4]
+                    }
+                else:
+                    subtitle=None
+
+                musicdata.push({
+                    "id": str(musicrow[j][2])+"_"+str(musicrow[j][0]),
+                    "path": musicrow[j][3],
+                    "title": musicrow[j][5],
+                    "artist": musicrow[j][6].split(","),
+                    "duration": musicrow[j][7],
+                    "subtitle": subtitle
+                })
+
+
+            data.push({
+                "id": row[i][0],
+                "cover": row[i][2],
+                "title": row[i][3],
+                "description": row[i][4],
+                "attr": {
+                    "publisher": row[i][5],
+                    "publicdate": row[i][6]
+                },
+                "albumartist": row[i][7].split(","),
+                "tracks": musicdata
+            })
+
+        return Response({
+            "albums": data
+        },status.HTTP_200_OK)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({

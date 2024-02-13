@@ -40,6 +40,7 @@ urlpatterns=[
     path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
     path("dcbot/",include("dcbot.url"),name="dcbot"), # dcbot
     path("tutorial/",include("tutorial.url"),name="tutorial"), # tutorial
+    path("computercontroller/",include("computercontroller.url"),name="computercontroller"), # computercontroller
 
     # 專案
     path("project005/",include("project005.url"),name="project005"), # project005

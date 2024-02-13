@@ -97,9 +97,7 @@ def getposthouse(request):
                 "success": True,
                 "message": "",
                 "data": {
-                    "houses": [
-                        data
-                    ],
+                    "houses": data,
                     "total_count": len(row)
                 }
             },status.HTTP_200_OK)
@@ -203,7 +201,7 @@ def gedhouse(request,houseid):
                 userrow=query(db,"SELECT*FROM `users` WHERE `id`=%s",[row[1]])[0]
 
                 for i in range(len(imagerow)):
-                    imagedata.append("https://hiiamchris.ddns.net"+imagerow[i][2])
+                    imagedata.append(imagerow[i][2])
 
                 return Response({
                     "success": True,
@@ -441,9 +439,7 @@ def getuserhouse(request):
                 "success": True,
                 "message": "",
                 "data": {
-                    "house": [
-                        data
-                    ],
+                    "houses": data,
                     "total_count": len(row)
                 }
             },status.HTTP_200_OK)

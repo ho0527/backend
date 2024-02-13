@@ -30,7 +30,7 @@ urlpatterns=[
     re_path(r"^delmusic/(?P<musicid>[^\/]+)$",index.signin,name="delmusic"),
 
     re_path(r"^getlog$",index.getlog,name="getlog"),
-    re_path(r"^getapi$",album.getalbum,name="getapi"),
+    re_path(r"^getapi$",index.getapi,name="getapi"),
 
     re_path(r".+",index.error404,name="404"),
 ]
