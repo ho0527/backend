@@ -42,7 +42,7 @@ def signin(request):
                 "data": {
                     "userid": row[0][0],
                     "username": row[0][1],
-                    "userpermission": row[0][3],
+                    "permission": row[0][3],
                     "token": token,
                 }
             },status.HTTP_200_OK)
@@ -79,7 +79,7 @@ def signup(request):
                 "data": {
                     "userid": row[0][0],
                     "username": row[0][1],
-                    "userpermission": row[0][3],
+                    "permission": row[0][3],
                     "token": token,
                 }
             },status.HTTP_200_OK)
@@ -125,7 +125,7 @@ def getlog(request):
 
                 data=[]
                 for i in range(min(len(row),500)):
-                    data.push({
+                    data.append({
                         "id": row[i][0],
                         "userid": row[i][1],
                         "move": row[i][2],
@@ -169,7 +169,7 @@ def getapi(request):
                 else:
                     subtitle=None
 
-                musicdata.push({
+                musicdata.append({
                     "id": str(musicrow[j][2])+"_"+str(musicrow[j][0]),
                     "path": musicrow[j][3],
                     "title": musicrow[j][5],
@@ -179,7 +179,7 @@ def getapi(request):
                 })
 
 
-            data.push({
+            data.append({
                 "id": row[i][0],
                 "cover": row[i][2],
                 "title": row[i][3],

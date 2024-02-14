@@ -44,7 +44,7 @@ def getalbum(request,albumid):
                         else:
                             subtitle=None
 
-                        musicdata.push({
+                        musicdata.append({
                             "musicid": musicrow[i][0],
                             "albumid": musicrow[i][2],
                             "musicpath": musicrow[i][3],
@@ -113,7 +113,7 @@ def getalbumlist(request):
                     else:
                         subtitle=None
 
-                    musicdata.push({
+                    musicdata.append({
                         "musicid": musicrow[j][0],
                         "albumid": musicrow[j][2],
                         "musicpath": musicrow[j][3],
@@ -124,7 +124,7 @@ def getalbumlist(request):
                     })
 
 
-                data.push({
+                data.append({
                     "albumid": row[i][0],
                     "albumcover": row[i][2],
                     "title": row[i][3],

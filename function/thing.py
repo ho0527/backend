@@ -87,3 +87,7 @@ def randomname():
     for i in range(50):
         name=name+str("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[random.randint(0,61)])
     return name
+
+def deletefile(path):
+    if os.path.exists(path):
+        os.remove(path)

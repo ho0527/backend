@@ -93,7 +93,7 @@ def getmusiclist(request):
                 else:
                     subtitle=None
 
-                data.push({
+                data.append({
                     "musicid": row[i][0],
                     "albumid": row[i][2],
                     "musicpath": row[i][3],

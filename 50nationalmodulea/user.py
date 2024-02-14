@@ -69,7 +69,7 @@ def getuserlist(request):
                 row=query(db,"SELECT*FROM `user`")
                 data=[]
                 for i in range(len(row)):
-                    data.push({
+                    data.append({
                         "userid": row[i][0],
                         "username": row[i][1],
                         "userpermission": row[i][3],

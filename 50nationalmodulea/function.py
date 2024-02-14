@@ -28,10 +28,11 @@ def signincheck(data):
         if header:
             row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if row:
+                userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
                 return {
                     "success": True,
                     "tokenid": row[0][0],
-                    "permission": row[0][3],
+                    "permission": int(userrow[0][3]),
                     "userid": int(row[0][1]),
                     "data": int(row[0][1])
                 }
