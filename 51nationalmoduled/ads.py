@@ -93,9 +93,7 @@ def getads(request):
                     "success": True,
                     "message": "",
                     "data": {
-                        "applications": [
-                            data
-                        ],
+                        "ads": data,
                         "total_count": len(row)
                     }
                 },status.HTTP_200_OK)

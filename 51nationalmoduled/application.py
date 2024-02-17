@@ -102,9 +102,7 @@ def getpostapplication(request):
                         "success": True,
                         "message": "",
                         "data": {
-                            "applications": [
-                                data
-                            ],
+                            "applications": data,
                             "total_count": len(row)
                         }
                     },status.HTTP_200_OK)
