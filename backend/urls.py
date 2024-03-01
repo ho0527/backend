@@ -36,6 +36,7 @@ urlpatterns=[
     path("worldskill2022modulec/",include("ws2022modulec.url"),name="ws2022modulec"), # worldskill2022modulec
 
     # 自用
+    path("templ/",include("templ.url"),name="templ"), # templ
     path("chclass/",include("chclass.url"),name="chclass"), # chclass
     path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
     path("dcbot/",include("dcbot.url"),name="dcbot"), # dcbot

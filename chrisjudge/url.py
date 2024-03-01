@@ -7,7 +7,7 @@ from . import admin
 
 urlpatterns=[
     path("login",index.login,name="login"),
-    # path("login/thirdpartylogin/<str:type>",index.thirdpartylogin,name="thirdpartylogin"),
+    path("login/thirdpartylogin/<str:type>",index.thirdpartylogin,name="thirdpartylogin"),
     path("signup",index.signup,name="signup"),
     path("logout/<str:token>",index.logout,name="logout"),
     path("logincheck",index.logincheck,name="logincheck"),
