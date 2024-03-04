@@ -147,7 +147,6 @@ def game(request):
             if title==None:
                 invaliddata["title"]="required"
                 check=False
-                print("in")
             else:
                 slug=title.lower().replace(" ","-")
                 if len(title)<3:

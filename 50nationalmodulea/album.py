@@ -159,10 +159,19 @@ def newalbum(request):
         publicdate=request.POST["publicdate"]
         description=request.POST["description"]
         albumartist=request.POST["albumartist"]
+
         try:
-            covername=randomname()+os.path.splitext(request.FILES["cover"].name)[1]
-            uploadfile("./upload/50nationalmodulea",request.FILES["cover"],covername)
-            coverpath="/backend/media/50nationalmodulea/"+covername
+            extension=os.path.splitext(request.FILES["cover"].name)[1]
+
+            if extension in ["png","jpg","jpeg","gif"]:
+                covername=randomname()+os.path.splitext(request.FILES["cover"].name)[1]
+                uploadfile("./upload/50nationalmodulea",request.FILES["cover"],covername)
+                coverpath="/backend/media/50nationalmodulea/"+covername
+            else:
+                return Response({
+                    "success": False,
+                    "data": "[WARNING]cover extension not accept"
+                },status.HTTP_404_NOT_FOUND)
         except Exception as error:
             coverpath=request.POST["cover"]
 
