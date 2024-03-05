@@ -46,6 +46,7 @@ urlpatterns=[
 
     # 專案
     path("project005/",include("project005.url"),name="project005"), # project005
+    path("project00009/",include("project00009.url"),name="project00009"), # project00009
 
     # docs
     # path('admin/',admin.site.urls),
