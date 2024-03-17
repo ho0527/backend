@@ -98,7 +98,7 @@ def getalbumlist(request):
             if 4<=int(check["permission"]):
                 row=query(db,"SELECT*FROM `album`")
             else:
-                row=query(db,"SELECT*FROM `album` WHERE `userid`=%s",check["userid"])
+                row=query(db,"SELECT*FROM `album` WHERE `userid`=%s",[check["userid"]])
 
             data=[]
             for i in range(len(row)):
