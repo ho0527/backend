@@ -62,3 +62,39 @@ def edittodo(request,id):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["GET"])
+def getcalendar(request,id):
+    try:
+        row=query(db,"SELECT*FROM `calendar` WHERE `id`=%s",[id])
+
+        return Response({
+            "success": True,
+            "data": row[0]
+        },status.HTTP_200_OK)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["PUT"])
+def editcalendar(request,id):
+    try:
+        data=json.loads(request.body)
+        calendardata=data.get("calendardata")
+
+        query(db,"UPDATE `calendar` SET `calendardata`=%s,`updatetime`=%s WHERE `id`=%s",[calendardata,time(),id])
+        row=query(db,"SELECT*FROM `calendar` WHERE `id`=%s",[id])
+
+        return Response({
+            "success": True,
+            "data": row[0]
+        },status.HTTP_200_OK)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)
