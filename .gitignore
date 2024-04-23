@@ -10,7 +10,7 @@
 /backend/__pycache__/
 /chclass/__pycache__/
 /chrisjudge/__pycache__/
-/computercontroller
+# /computercontroller
 /dcbot/__pycache__/
 /function/__pycache__/
 /filemanager/__pycache__/
@@ -19,8 +19,8 @@
 /ws2022modulec/__pycache__/
 /ws2022modulec/temp/
 /chrisjudge/upload
-/project005/
-/project00009/
+# /project005/
+# /project00009/
 /upload/50nationalmodulea
 /upload/51nationalmoduled
 /upload/computercontroller
