@@ -39,6 +39,7 @@ urlpatterns=[
     path("templ/",include("templ.url"),name="templ"), # templ
     path("chclass/",include("chclass.url"),name="chclass"), # chclass
     path("chrisjudge/",include("chrisjudge.url"),name="chrisjudge"), # chrisjudge
+    path("chrisjudge_54national/",include("chrisjudge_54national.url"),name="chrisjudge_54national"), # chrisjudge_54national
     path("dcbot/",include("dcbot.url"),name="dcbot"), # dcbot
     path("tutorial/",include("tutorial.url"),name="tutorial"), # tutorial
     path("computercontroller/",include("computercontroller.url"),name="computercontroller"), # computercontroller
