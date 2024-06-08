@@ -20,8 +20,8 @@ def checkfile(file,question):
             expectedoutput="".join(testoutput[i].split("\n"))
             actualoutput="".join(outputtext.split("\n"))
 
-            print("expectedoutput: "+expectedoutput)
-            print("actualoutput: "+actualoutput)
+            # print("expectedoutput: "+expectedoutput)
+            # print("actualoutput: "+actualoutput)
 
             # 看記憶體有沒有爆掉
             if output.returncode!=0:

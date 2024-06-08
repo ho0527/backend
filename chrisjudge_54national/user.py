@@ -119,9 +119,9 @@ def newresponse(request,questionid):
             if fileextension==".php":
                 filename=str(userid).zfill(5)+"_"+str(questionid).zfill(5)+"_testfile"+"_"+"v"+(str(len(responserow)+1).zfill(4))+fileextension
                 rpath="C:/nginx/python/backend/"
-                fileurl=rpath+"chrisjudge/upload/"+str(filename)
+                fileurl=rpath+"chrisjudge_54national/upload/"+str(filename)
 
-                uploadfile("./chrisjudge/upload",request.FILES["file"],filename)
+                uploadfile("./chrisjudge_54national/upload",request.FILES["file"],filename)
 
                 response=checkfile(fileurl,questionrow[0])
 
