@@ -17,8 +17,8 @@ def checkfile(file,question):
 
             outputtext=output.stdout.rstrip() # 獲取輸出結果
 
-            expectedoutput="".join(testoutput[i].split("\n"))
-            actualoutput="".join(outputtext.split("\n"))
+            expectedoutput="".join(testoutput[i].split("\n")).strip()
+            actualoutput="".join(outputtext.split("\n")).strip()
 
             # print("expectedoutput: "+expectedoutput)
             # print("actualoutput: "+actualoutput)
