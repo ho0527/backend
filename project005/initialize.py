@@ -1,3 +1,0 @@
-SETTING={
-    "dbname": "project005"
-}

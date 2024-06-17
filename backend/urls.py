@@ -46,7 +46,7 @@ urlpatterns=[
     path("filemanager/",include("filemanager.url"),name="filemanager"), # filemanager
 
     # 專案
-    path("project005/",include("project005.url"),name="project005"), # project005
+    path("case00005/",include("case00005.url"),name="case00005"), # case00005
     path("project00009/",include("project00009.url"),name="project00009"), # project00009
 
     # docs
