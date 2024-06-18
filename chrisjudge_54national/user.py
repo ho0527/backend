@@ -227,12 +227,14 @@ def getscorelist(request):
                 if int(userrow[i][4])>=4:
                     data.append({
                         "userid": userrow[i][0],
+                        "nickname": userrow[i][3],
                         "responselist": None,
                         "reason": "user is admin"
                     })
                 else:
                     data.append({
                         "userid": userrow[i][0],
+                        "nickname": userrow[i][3],
                         "responselist": responselist
                     })
 
