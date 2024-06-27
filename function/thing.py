@@ -82,9 +82,15 @@ def uploadfile(path,file,name):
     except Exception as error:
         printcolorhaveline("fail","[ERROR] function uploadfile error: "+str(error),"")
 
-def randomname():
+def randomname(length=35):
     name=""
-    for i in range(50):
+    for i in range(length):
+        name=name+str("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[random.randint(0,61)])
+    return name
+
+def randomtext(length=35):
+    name=""
+    for i in range(length):
         name=name+str("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[random.randint(0,61)])
     return name
 
