@@ -54,13 +54,13 @@ def getuser(request,token):
 @api_view(["PUT"])
 def edituser(request):
     try:
-        data=json.loads(request.body)
-        username=data.get("username")
-        nickname=data.get("nickname")
-
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
+            data=json.loads(request.body)
+            username=data.get("username")
+            nickname=data.get("nickname")
+
             query(db,"UPDATE `user` SET `username`=%s,`nickname`=%s,`updatetime`=%s WHERE `id`=%s",[username,nickname,time(),userrow[0][1]])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userrow[0][1],"修改使用者id: "+userrow[0][1],time()])
 
@@ -185,7 +185,7 @@ def getresponselist(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            row=query(db,"SELECT*FROM `response`")
+            row=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[0][1]])
             return Response({
                 "success": True,
                 "data": row

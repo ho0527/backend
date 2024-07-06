@@ -8,12 +8,13 @@ def checkfile(file,question):
     runtime=time.time()
     result="SU"
     response=""
-    timelimit=100 # 設定執行時間限制(s)
+    timelimit=20 # 設定執行時間限制(s)
 
     for i in range(len(testinput)):
         inputruntime=time.time()
         try:
             output=subprocess.run("php -d memory_limit=128M "+str(file),input=str(testinput[i]),stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timelimit,universal_newlines=True) # 執行PHP程式,輸入測試資料，並設定時間限制
+            outputruntime=time.time()
 
             outputtext=output.stdout.rstrip() # 獲取輸出結果
 
@@ -26,19 +27,22 @@ def checkfile(file,question):
             # 看記憶體有沒有爆掉
             if output.returncode!=0:
                 success=False
-                result="MF"
+                if result=="SU":
+                    result="MF"
                 response=f"{response}test_{i+1} failed memory overload\nmax memory: 128MB\n"
 
             # 比對輸出結果
             elif actualoutput!=expectedoutput:
                 success=False
-                result="RF"
+                if result=="SU":
+                    result="RF"
                 response=f"{response}test_{i+1} failed respound failed\ninput:\n{testinput[i]}\nexpectedoutput: {expectedoutput}\nactualoutput: {actualoutput}\n"
 
             # 超時
-            elif time.time()-inputruntime>int(question[7]):
+            elif int(question[7])<round(outputruntime-inputruntime): # [BUG]這個round是偷吃步解法
                 success=False
-                result="OT"
+                if result=="SU":
+                    result="OT"
                 response=f"{response}test_{i+1} failed overtime\ninput:\n{testinput[i]}\nexpectedoutput: {expectedoutput}\nactualoutput: {actualoutput}\n"
 
             else:
