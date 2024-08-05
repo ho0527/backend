@@ -26,4 +26,6 @@ urlpatterns=[
     path("delquestion/<str:id>",admin.delquestion,name="delquestion"),
     path("getuserlist",admin.getuserlist,name="getuserlist"),
     path("getlog",admin.getlog,name="getlog"),
+
+    path("refdb",admin.refdb,name="refdb")
 ]

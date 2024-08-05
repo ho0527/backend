@@ -233,3 +233,58 @@ def getlog(request):
             "success": False,
             "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
         },status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+def refdb(request):
+    try:
+        token=request.headers.get("Authorization").split("Bearer ")[1]
+        row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
+        if row:
+            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
+            if int(loginuserrow[0][4])>=4:
+                insertdata=[
+                    ["web01",hashpassword("web01pass"),"web01",1,"",time(),time(),None],
+                    ["web02",hashpassword("web02pass"),"web02",1,"",time(),time(),None],
+                    ["web03",hashpassword("web03pass"),"web03",1,"",time(),time(),None],
+                    ["web04",hashpassword("web04pass"),"web04",1,"",time(),time(),None],
+                    ["web05",hashpassword("web05pass"),"web05",1,"",time(),time(),None],
+                    ["web06",hashpassword("web06pass"),"web06",1,"",time(),time(),None],
+                    ["web07",hashpassword("web07pass"),"web07",1,"",time(),time(),None],
+                    ["web08",hashpassword("web08pass"),"web08",1,"",time(),time(),None],
+                    ["web09",hashpassword("web09pass"),"web09",1,"",time(),time(),None],
+                    ["web10",hashpassword("web10pass"),"web10",1,"",time(),time(),None],
+                    # ["web11",hashpassword("web11pass"),"web11",1,"",time(),time(),None],
+                    # ["web12",hashpassword("web12pass"),"web12",1,"",time(),time(),None],
+                    ["backup",hashpassword("backuppass"),"backup",1,"",time(),time(),None],
+                    ["admin",hashpassword("123456789"),"admin",5,"",time(),time(),None]
+                ]
+
+                query(db,"TRUNCATE TABLE `log`")
+                query(db,"TRUNCATE TABLE `token`")
+                query(db,"TRUNCATE TABLE `response`")
+                query(db,"TRUNCATE TABLE `user`")
+                query(db,"TRUNCATE TABLE `user`")
+
+                for i in range(len(insertdata)):
+                    query(db,"INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`email`,`createtime`,`updatetime`,`deletetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",insertdata[i])
+
+                return Response({
+                    "success": True,
+                    "data": "更新成功"
+                },status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": False,
+                    "data": "權限不足"
+                },status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({
+                "success": False,
+                "data": "token不存在"
+            },status.HTTP_403_FORBIDDEN)
+    except Exception as error:
+        printcolorhaveline("fail","[ERROR] "+str(error),"")
+        return Response({
+            "success": False,
+            "data": "[ERROR] unknow error pls tell the admin error:\n"+str(error)
+        },status.HTTP_500_INTERNAL_SERVER_ERROR)

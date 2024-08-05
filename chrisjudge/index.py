@@ -4,15 +4,15 @@ import hashlib
 import json
 import random
 import re
-import google.oauth2.id_token
+# import google.oauth2.id_token
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 from django.views.decorators.http import require_http_methods
 from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from google.oauth2 import id_token
-from google.auth.transport import requests
+# from google.oauth2 import id_token
+# from google.auth.transport import requests
 
 # 自創
 from function.sql import query,createdb
