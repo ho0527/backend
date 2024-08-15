@@ -10,8 +10,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 # 自創
-from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key
+from function.sql import *
+from function.thing import *
 
 # main START
 db="51regional"

@@ -6,7 +6,7 @@ from mysql.connector import Error
 from django.http import JsonResponse
 
 # 自創
-from function.thing import printcolor,printcolorhaveline,time,switch_key
+from function.thing import *
 
 # main START
 

@@ -15,8 +15,8 @@ from rest_framework.response import Response
 # from google.auth.transport import requests
 
 # 自創
-from function.sql import query,createdb
-from function.thing import printcolor,printcolorhaveline,time,switch_key,hashpassword,checkpassword,hash
+from function.sql import *
+from function.thing import *
 
 # main START
 db="chrisjudge"

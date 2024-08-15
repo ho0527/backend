@@ -29,10 +29,10 @@ def printcolor(color,text):
 	# 打印带有颜色的文本
 	print(str(colorcode)+str(text)+str("\033[0m"))
 
-# printcolorhaveline 函式：在終端機中打印分隔線並打印文字
 def printcolorhaveline(color="green",text="",linestyle="-"):
-	print(linestyle*30)
-	printcolor(color,text)
+    if linestyle!="":
+        print(linestyle*30)
+    printcolor(color,"["+time()+"] "+text)
 
 # switch_key 函式：根據鍵的格式返回對應的鍵值
 def switch_key(tkey):
@@ -44,6 +44,12 @@ def switch_key(tkey):
 
 def time():
 	return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def nowtime():
+	return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def nowdate():
+	return datetime.datetime.now().strftime("%Y-%m-%d")
 
 def hashpassword(password):
 	return bcrypt.hashpw(password.encode("utf-8"),bcrypt.gensalt()).decode()
