@@ -61,7 +61,7 @@ def response(request):
         smtp=smtplib.SMTP("smtp.gmail.com",587)
         smtp.ehlo()
         smtp.starttls()
-        smtp.login("chris960527ho@gmail.com","lryw vreq vfau vuxb") # 帳號,應用程式密碼
+        smtp.login("chris960527ho@gmail.com","yxyk pgsk pyxb zcsj") # 帳號,應用程式密碼
         if smtp.sendmail("chris960527ho@gmail.com",["chris960527ho@gmail.com"],mimetext.as_string())=={}:
             printcolorhaveline("green","郵件傳送成功!","")
         else:
