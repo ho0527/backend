@@ -34,14 +34,6 @@ def printcolorhaveline(color="green",text="",linestyle="-"):
         print(linestyle*30)
     printcolor(color,"["+time()+"] "+text)
 
-# switch_key 函式：根據鍵的格式返回對應的鍵值
-def switch_key(tkey):
-	if tkey.startswith("#"):
-		key=tkey[1:]
-	else:
-		key=tkey.split("@")[0]
-	return key
-
 def time():
 	return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
