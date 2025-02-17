@@ -30,7 +30,7 @@ def getwarnlist(request,guildid):
 
         for i in range(len(row)):
             usercheck=False
-            userrow=query(db,"SELECT*FROM `user` WHERE `userid`=%s",[row[0][3]])
+            userrow=query(db,"SELECT*FROM `user` WHERE `userid`=%s",[row[i][3]])
 
             for j in range(len(totalwarndata)):
                 if totalwarndata[j]["userid"]==row[i][3]:

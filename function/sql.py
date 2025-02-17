@@ -2,8 +2,8 @@
 import datetime
 import MySQLdb
 import mysql.connector as mysql
+from MySQLdb.cursors import DictCursor
 from mysql.connector import Error
-from django.http import JsonResponse
 
 # 自創
 from function.thing import *
@@ -13,20 +13,61 @@ from function.thing import *
 def createdb(dbname,host="localhost",username="root",password="",port="3306"):
     return MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
 
-def query(dbname,query,data=None,host="localhost",username="root",password="",port=3306):
-    respone=None
+def query(dbname,query,data=None,setting={"host": "localhost","username": "root","password": "","port": 3306}):
+    response=None
     try:
-        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
-        cursor=db.cursor()
+        db=MySQLdb.connect(host=setting["host"],db=dbname,user=setting["username"],passwd=setting["password"],port=setting["port"])
+        cursor=db.cursor(DictCursor)
         cursor.execute(query,data)
-        respone=cursor.fetchall()
+        response=cursor.fetchall()
         db.commit()
         printcolorhaveline("green","use query function SUCCESS","")
     except Exception as error:
         printcolorhaveline("fail","[ERROR] use query function error "+str(error),"")
-        db=MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
+        db=MySQLdb.connect(host=setting["host"],db=dbname,user=setting["username"],passwd=setting["password"],port=setting["port"])
     if cursor:
         cursor.close()
     if db:
         db.close()
-    return respone
+    return response
+
+
+# import datetime
+# import mysql.connector as mysql
+# from mysql.connector import Error
+
+# # 自創
+# from function.thing import *
+
+# # main START
+
+# def createdb(dbname,host="localhost",username="root",password="",port=3306):
+#     return mysql.connect(host=host,database=dbname,user=username,password=password,port=port)
+
+# def query(dbname,query,data=None,setting={"host": "localhost","username": "root","password": "","port": 3306}):
+#     response=None
+#     db=None
+#     cursor=None
+#     try:
+#         db=mysql.connect(host=setting["host"],database=dbname,user=setting["username"],password=setting["password"],port=setting["port"])
+#         cursor=db.cursor(dictionary=True)  # 使用字典形式的游標
+#         cursor.execute(query,data)
+#         if query.strip().upper().startswith("SELECT"):
+#             response=cursor.fetchall()
+#             # 將 bytes 類型的欄位轉換為字串
+#             for row in response:
+#                 for key,value in row.items():
+#                     if isinstance(value,bytes):
+#                         row[key] = value.decode()  # 將 bytes 轉換為字符串
+#                     elif isinstance(value,bytearray):
+#                         row[key] = value.decode()  # 將 bytes 轉換為字符串
+#         db.commit()
+#         printcolorhaveline("green","use query function SUCCESS","")
+#     except Exception as error:
+#         printcolorhaveline("fail","[ERROR] use query function error " + str(error),"")
+#     finally:
+#         if cursor:
+#             cursor.close()
+#         if db:
+#             db.close()
+#     return response
