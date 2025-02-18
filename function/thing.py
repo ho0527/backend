@@ -143,3 +143,6 @@ def chash(x,type="encode",encoding="utf-8"):
 	else:
 		print("[KEYTYPEIN_ERROR]function chash error: type must be \"encode\" or \"decode\"")
 		return None
+
+def pregmatch(data,pattern):
+    return bool(re.compile(pattern).match(data))

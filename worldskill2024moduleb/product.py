@@ -25,12 +25,22 @@ from .initialize import *
 @api_view(["GET"])
 @exception_handler
 def getcompanyproductlist(request,companyid):
-    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `companyid`=%s AND `deactivatetime` IS NOT  NULL",[companyid],SETTING["dbsetting"])
+    row=query(SETTING["dbname"],"SELECT*FROM `company` WHERE `id`=%s AND `deactivatetime` IS NULL",[companyid],SETTING["dbsetting"])
+    if row:
+        productrow=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `companyid`=%s AND `deactivatetime` IS NULL",[companyid],SETTING["dbsetting"])
 
-    return Response({
-        "success": True,
-        "data": row
-    },status.HTTP_200_OK)
+        return Response({
+            "success": True,
+            "data": {
+                "company": row[0],
+                "product": productrow
+            }
+        },status.HTTP_200_OK)
+    else:
+        return Response({
+            "success": False,
+            "data": "company not found"
+        },status.HTTP_404_NOT_FOUND)
 
 @api_view(["GET"])
 @exception_handler
@@ -64,29 +74,30 @@ def newproduct(request,companyid):
     file=request.FILES.get("file")
     gtin=request.POST.get("gtin")
     name=request.POST.get("name")
-    engname=request.POST.get("engname")
+    enname=request.POST.get("enname")
     gtin=request.POST.get("gtin")
     description=request.POST.get("description")
-    engdescription=request.POST.get("engdescription")
+    endescription=request.POST.get("endescription")
     brandname=request.POST.get("brandname")
     country=request.POST.get("country")
     grossweight=request.POST.get("grossweight")
     contentweight=request.POST.get("contentweight")
+    unit=request.POST.get("unit")
 
     row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NULL",[gtin],SETTING["dbsetting"])
 
-    if pregmatch(gtin,"[0-9]{13,14}") and row:
-        filename="/upload/default.png"
+    if pregmatch(gtin,r"^[0-9]{13,14}$") and (not row):
+        filename="default.png"
 
         if file:
             filename=randomtext()+Path(file.name).suffix
 
-            uploadfile("/upload/",file[0],filename)
+            uploadfile("./upload/",file[0],filename)
 
         query(
             SETTING["dbname"],
-            "INSERT INTO `product`(`id`,`compantid`,`imagelink`,`gtin`,`name`,`enname`,`description`,`endescription`,`brandname`,`country`,`grossweight`,`contentweight`,`unit`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            [None,companyid,"/upload/"+filename,gtin,name,engname,gtin,description,engdescription,brandname,country,grossweight,contentweight,nowtime(),None,None],
+            "INSERT INTO `product`(`id`,`companyid`,`imagelink`,`gtin`,`name`,`enname`,`description`,`endescription`,`brandname`,`country`,`grossweight`,`contentweight`,`unit`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            [None,companyid,filename,gtin,name,enname,description,endescription,brandname,country,grossweight,contentweight,unit,nowtime(),None,None],
             SETTING["dbsetting"]
         )
 
@@ -96,7 +107,7 @@ def newproduct(request,companyid):
         },status.HTTP_200_OK)
     else:
         return Response({
-            "success": True,
+            "success": False,
             "data": "gtin error"
         },status.HTTP_400_BAD_REQUEST)
 
@@ -115,7 +126,7 @@ def editproduct(request,id):
     grossweight=request.POST.get("grossweight")
     contentweight=request.POST.get("contentweight")
 
-    filename="/upload/default.png"
+    filename="default.png"
 
     if file:
         filename=randomtext()+Path(file.name).suffix
