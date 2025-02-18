@@ -7,6 +7,7 @@ import re
 import google.oauth2.id_token
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 from django.views.decorators.http import require_http_methods
+from pathlib import Path
 from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
@@ -44,7 +45,7 @@ def getdeactivateproductlist(request,companyid):
 @api_view(["GET"])
 @exception_handler
 def getproduct(request,id):
-    row=query(SETTING["dbname"],"SELECT*FROM `company` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
+    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
 
     if row:
         return Response({
@@ -60,22 +61,29 @@ def getproduct(request,id):
 @api_view(["POST"])
 @exception_handler
 def newproduct(request,companyid):
-    data=json.loads(request.body)
-    name=data.get("name")
-    address=data.get("address")
-    phone=data.get("phone")
-    email=data.get("email")
-    ownername=data.get("ownername")
-    ownerphone=data.get("ownerphone")
-    owneraddress=data.get("owneraddress")
-    contactname=data.get("contactname")
-    contactphone=data.get("contactphone")
-    contactaddress=data.get("contactaddress")
+    file=request.FILES.get("file")
+    gtin=request.POST.get("gtin")
+    name=request.POST.get("name")
+    engname=request.POST.get("engname")
+    gtin=request.POST.get("gtin")
+    description=request.POST.get("description")
+    engdescription=request.POST.get("engdescription")
+    brandname=request.POST.get("brandname")
+    country=request.POST.get("country")
+    grossweight=request.POST.get("grossweight")
+    contentweight=request.POST.get("contentweight")
+
+    filename="/upload/default.png"
+
+    if file:
+        filename=randomtext()+Path(file.name).suffix
+
+        uploadfile("/upload/",file[0],filename)
 
     query(
         SETTING["dbname"],
-        "INSERT INTO `company`(`id`,`name`,`address`,`phone`,`email`,`ownername`,`ownerphone`,`owneraddress`,`contactname`,`contactphone`,`contactaddress`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-        [None,name,address,phone,email,ownername,ownerphone,owneraddress,contactname,contactphone,contactaddress,nowtime(),None,None],
+        "INSERT INTO `product`(`id`,`compantid`,`imagelink`,`gtin`,`name`,`enname`,`description`,`endescription`,`brandname`,`country`,`grossweight`,`contentweight`,`unit`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        [None,companyid,"/upload/"+filename,gtin,name,engname,gtin,description,engdescription,brandname,country,grossweight,contentweight,nowtime(),None,None],
         SETTING["dbsetting"]
     )
 
@@ -87,25 +95,32 @@ def newproduct(request,companyid):
 @api_view(["PUT"])
 @exception_handler
 def editproduct(request,id):
-    data=json.loads(request.body)
-    name=data.get("name")
-    address=data.get("address")
-    phone=data.get("phone")
-    email=data.get("email")
-    ownername=data.get("ownername")
-    ownerphone=data.get("ownerphone")
-    owneraddress=data.get("owneraddress")
-    contactname=data.get("contactname")
-    contactphone=data.get("contactphone")
-    contactaddress=data.get("contactaddress")
+    file=request.FILES.get("file")
+    gtin=request.POST.get("gtin")
+    name=request.POST.get("name")
+    engname=request.POST.get("engname")
+    gtin=request.POST.get("gtin")
+    description=request.POST.get("description")
+    engdescription=request.POST.get("engdescription")
+    brandname=request.POST.get("brandname")
+    country=request.POST.get("country")
+    grossweight=request.POST.get("grossweight")
+    contentweight=request.POST.get("contentweight")
 
-    row=query(SETTING["dbname"],"SELECT*FROM `company` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
+    filename="/upload/default.png"
+
+    if file:
+        filename=randomtext()+Path(file.name).suffix
+
+        uploadfile("/upload/",file[0],filename)
+
+    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
 
     if row:
         query(
             SETTING["dbname"],
-            "UPDATE `company` SET `name`=%s,`address`=%s,`phone`=%s,`email`=%s,`ownername`=%s,`ownerphone`=%s,`owneraddress`=%s,`contactname`=%s,`contactphone`=%s,`contactaddress`=%s,`updatetime`=%s WHERE `id`=%s",
-            [name,address,phone,email,ownername,ownerphone,owneraddress,contactname,contactphone,contactaddress,nowtime(),id],
+            "UPDATE `product` SET `imagelink`=%s,`gtin`=%s,`name`=%s,`enname`=%s,`description`=%s,`endescription`=%s,`brandname`=%s,`country`=%s,`grossweight`=%s,`contentweight`=%s,`unit`=%s,`updatetime`=%s WHERE `id`=%s",
+            ["/upload/"+filename,gtin,name,engname,gtin,description,engdescription,brandname,country,grossweight,contentweight,nowtime(),id],
             SETTING["dbsetting"]
         )
 
@@ -122,7 +137,7 @@ def editproduct(request,id):
 @api_view(["PUT"])
 @exception_handler
 def deactivateproduct(request,id):
-    row=query(SETTING["dbname"],"SELECT*FROM `company` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
+    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
 
     if row:
         query(SETTING["dbname"],"UPDATE `product` SET `deactivatetime`=%s WHERE `id`=%s",[nowtime(),id],SETTING["dbsetting"])
