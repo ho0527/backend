@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import path,include,re_path
 
-from . import company
 from . import index
-from . import admin
+from . import company
+from . import product
 
 urlpatterns=[
     re_path("^getdeactivatecompanylist$",company.getdeactivatecompanylist,name="getdeactivatecompanylist"),
@@ -12,12 +12,14 @@ urlpatterns=[
     re_path("^newcompany$",company.newcompany,name="newcompany"),
     re_path("^editcompany/(?P<id>.+)$",company.editcompany,name="editcompany"),
     re_path("^deactivatecompany/(?P<id>.+)$",company.deactivatecompany,name="deactivatecompany"),
-    # re_path("^api/v1/auth/signin$",index.signin,name="signin"),
-    # re_path("^api/v1/auth/signout$",index.signout,name="signout"),
-    # re_path("^api/v1/games$",game.game,name="game"),
-    # re_path("^api/v1/games/(?P<slug>[^\/]+)$",game.gameid,name="getgame"),
-    # re_path("^api/v1/games/(?P<slug>.+)/upload$",game.uploadgame,name="uploadgame"),
-    # re_path("^api/v1/users/(?P<username>.+)$",index.getuser,name="getuser"),
-    # re_path("^api/v1/games/(?P<slug>.+)/scores$",game.score,name="score"),
+
+    re_path("^getcompanyproductlist/(?P<companyid>.+)$",product.getcompanyproductlist,name="getcompanyproductlist"),
+    re_path("^getdeactivateproductlist/(?P<companyid>.+)$",product.getdeactivateproductlist,name="getdeactivateproductlist"),
+    re_path("^getproduct/(?P<id>.+)$",product.getproduct,name="getproduct"),
+    re_path("^newproduct/(?P<companyid>.+)$",product.newproduct,name="newproduct"),
+    re_path("^editproduct/(?P<id>.+)$",product.editproduct,name="editproduct"),
+    re_path("^deactivateproduct/(?P<id>.+)$",product.deactivateproduct,name="deactivateproduct"),
+    re_path("^deleteproduct/(?P<id>.+)$",product.deleteproduct,name="deleteproduct"),
+
     re_path(".+",index.error404,name="404"),
 ]
