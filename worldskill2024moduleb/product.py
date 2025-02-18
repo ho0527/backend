@@ -75,7 +75,7 @@ def newproduct(request,companyid):
 
     row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NULL",[gtin],SETTING["dbsetting"])
 
-    if pregmatch(gtin,"[0-9]{13}") and row:
+    if pregmatch(gtin,"[0-9]{13,14}") and row:
         filename="/upload/default.png"
 
         if file:

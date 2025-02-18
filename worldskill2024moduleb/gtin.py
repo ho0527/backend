@@ -28,12 +28,26 @@ def gtintest(request):
     data=json.loads(request.body)
     input=data.get("input").split("\n")
 
-    response=[]
+    responsedata={
+        data: [],
+        allvaild: True
+    }
 
     for gtin in input:
-        row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NOT  NULL",[companyid],SETTING["dbsetting"])
+        row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NOT  NULL",[gtin],SETTING["dbsetting"])
+        if row:
+            responsedata["data"].append({
+                "gtin": gtin,
+                "status": "vaild"
+            })
+        else:
+            responsedata["allvaild"]=False
+            responsedata["data"].append({
+                "gtin": gtin,
+                "status": "Invaild"
+            })
 
     return Response({
         "success": True,
-        "data": row
+        "data": responsedata
     },status.HTTP_200_OK)
