@@ -44,8 +44,8 @@ def getdeactivateproductlist(request,companyid):
 
 @api_view(["GET"])
 @exception_handler
-def getproduct(request,id):
-    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `id`=%s AND `deactivatetime` IS NULL",[id],SETTING["dbsetting"])
+def getproduct(request,gtin):
+    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NULL",[gtin],SETTING["dbsetting"])
 
     if row:
         return Response({
@@ -73,24 +73,32 @@ def newproduct(request,companyid):
     grossweight=request.POST.get("grossweight")
     contentweight=request.POST.get("contentweight")
 
-    filename="/upload/default.png"
+    row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NULL",[gtin],SETTING["dbsetting"])
 
-    if file:
-        filename=randomtext()+Path(file.name).suffix
+    if pregmatch(gtin,"[0-9]{13}") and row:
+        filename="/upload/default.png"
 
-        uploadfile("/upload/",file[0],filename)
+        if file:
+            filename=randomtext()+Path(file.name).suffix
 
-    query(
-        SETTING["dbname"],
-        "INSERT INTO `product`(`id`,`compantid`,`imagelink`,`gtin`,`name`,`enname`,`description`,`endescription`,`brandname`,`country`,`grossweight`,`contentweight`,`unit`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-        [None,companyid,"/upload/"+filename,gtin,name,engname,gtin,description,engdescription,brandname,country,grossweight,contentweight,nowtime(),None,None],
-        SETTING["dbsetting"]
-    )
+            uploadfile("/upload/",file[0],filename)
 
-    return Response({
-        "success": True,
-        "data": ""
-    },status.HTTP_200_OK)
+        query(
+            SETTING["dbname"],
+            "INSERT INTO `product`(`id`,`compantid`,`imagelink`,`gtin`,`name`,`enname`,`description`,`endescription`,`brandname`,`country`,`grossweight`,`contentweight`,`unit`,`createtime`,`updatetime`,`deactivatetime`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            [None,companyid,"/upload/"+filename,gtin,name,engname,gtin,description,engdescription,brandname,country,grossweight,contentweight,nowtime(),None,None],
+            SETTING["dbsetting"]
+        )
+
+        return Response({
+            "success": True,
+            "data": ""
+        },status.HTTP_200_OK)
+    else:
+        return Response({
+            "success": True,
+            "data": "gtin error"
+        },status.HTTP_400_BAD_REQUEST)
 
 @api_view(["PUT"])
 @exception_handler
