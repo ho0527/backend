@@ -57,7 +57,7 @@ def signup(request):
 
         if not row:
             if check:
-                query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`,`lastlogintime`,`deltime`,`delreason`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[username,hashpassword(password),time(),time(),time(),"",""])
+                query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`,`lastlogintime`,`deltime`,`delreason`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[username,password,time(),time(),time(),"",""])
                 row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                 token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
                 query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
@@ -118,7 +118,7 @@ def signin(request):
                 check=False
 
         if row:
-            if checkpassword(password,row[0][2]):
+            if password==row[0][2]:
                 if check:
                     row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                     token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
