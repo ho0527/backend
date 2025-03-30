@@ -117,9 +117,10 @@ def signin(request):
                 invaliddata["password"]="must be at most 2^16 characters long"
                 check=False
 
+
         if check:
             if row:
-                if password==row[0][2]:
+                if password==row[0]["password"]:
                     if row[0]["blocktime"]==None:
                         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                         token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
