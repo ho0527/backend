@@ -18,19 +18,41 @@ from google.auth.transport import requests
 from function.sql import query,createdb
 from function.thing import *
 
+db="ws2022modulec"
+
 def signincheck(data):
     try:
         header=data.headers.get("Authorization")
-        print("header="+str(header))
         if header:
-            row=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
-            if row:
-                if (datetime.datetime.now()-datetime.datetime.strptime(row[0][3],'%Y-%m-%d %H:%M:%S')).total_seconds()<3600:
-                    return {
-                        "success": True,
-                        "tokenid": row[0][0],
-                        "data": row[0][1]
-                    }
+            tokenrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
+            if tokenrow:
+                if (datetime.datetime.now()-datetime.datetime.strptime(tokenrow[0]["starttime"],'%Y-%m-%d %H:%M:%S')).total_seconds()<3600:
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[tokenrow[0]["userid"]])
+                    if userrow:
+                        userrow=userrow[0]
+                        if userrow["blocktime"]==None:
+                            return {
+                                "success": True,
+                                "tokenid": tokenrow[0]["id"],
+                                "data": tokenrow[0]["userid"]
+                            }
+                        else:
+                            return {
+                                "success": False,
+                                "data": {
+                                    "status": "blocked",
+                                    "message": "User blocked",
+                                    "reason": userrow["blockreason"]
+                                }
+                            }
+                    else:
+                        return {
+                            "success": False,
+                            "data": {
+                                "status": "unauthenticated",
+                                "message": "invalid token"
+                            }
+                        }
                 else:
                     return {
                         "success": False,

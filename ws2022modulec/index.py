@@ -117,23 +117,29 @@ def signin(request):
                 invaliddata["password"]="must be at most 2^16 characters long"
                 check=False
 
-        if row:
-            if password==row[0][2]:
-                if check:
-                    row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
-                    token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                    query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+        if check:
+            if row:
+                if password==row[0][2]:
+                    if row[0]["blocktime"]==None:
+                        row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
+                        token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
+                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
 
-                    return Response({
-                        "status": "success",
-                        "token": token
-                    },status.HTTP_200_OK)
+                        return Response({
+                            "status": "success",
+                            "token": token
+                        },status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "status": "blocked",
+                            "message": "User blocked",
+                            "reason": row[0]["blockreason"]
+                        },status.HTTP_403_FORBIDDEN)
                 else:
                     return Response({
                         "status": "invalid",
-                        "message": "request body is not valid",
-                        "violations": invaliddata
-                    },status.HTTP_400_BAD_REQUEST)
+                        "message": "Wrong username or password"
+                    },status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({
                     "status": "invalid",
@@ -142,8 +148,9 @@ def signin(request):
         else:
             return Response({
                 "status": "invalid",
-                "message": "Wrong username or password"
-            },status.HTTP_401_UNAUTHORIZED)
+                "message": "request body is not valid",
+                "violations": invaliddata
+            },status.HTTP_400_BAD_REQUEST)
     except Exception as error:
         printcolorhaveline("fail","[ERROR] "+str(error),"")
         return Response({
