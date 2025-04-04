@@ -66,68 +66,27 @@ def game(request):
             # 驗證 END
 
             if check:
-                row=query(db,"SELECT*FROM `game` WHERE `version`!='0'")
+                row=query(db,"SELECT*FROM `gameversion` WHERE `deletetime` IS NULL ORDER BY `%s` %s LIMIT %s,%s",[sortby,sorttype,page*size,size])
+
                 for i in range(len(row)):
-                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[i][1]])
-                    scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[i][0]])
+                    gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[row[i]["gameid"]])[0]
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[i][gamerow["userid"]]])[0]
+                    scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[i]["gameid"]])
                     data.append({
-                        "author": userrow[0][1],
-                        "slug": row[i][5],
-                        "title": row[i][4],
-                        "description": row[i][6],
-                        "thumbnail": row[i][2],
+                        "author": userrow["username"],
+                        "slug": game[i]["slug"],
+                        "title": game[i]["title"],
+                        "description": game[i]["desciption"],
+                        "thumbnail": row[i]["thumbnailpath"],
                         "scoreCount": len(scorerow),
-                        "uploadTimestamp": row[i][9],
+                        "uploadTimestamp": row[i]["createtime"]
                     })
-
-                for i in range(len(data)):
-                    for j in range(len(data)-i-1):
-                        if sortby=="title":
-                            if sorttype=="asc":
-                                if data[j]["title"]>data[j+1]["title"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-                            else:
-                                if data[j]["title"]<data[j+1]["title"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-                        elif sortby=="popular":
-                            if sorttype=="asc":
-                                if data[j]["scoreCount"]>data[j+1]["scoreCount"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-                            else:
-                                if data[j]["scoreCount"]<data[j+1]["scoreCount"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-                        else:
-                            if sorttype=="asc":
-                                if data[j]["uploadTimestamp"]>data[j+1]["uploadTimestamp"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-                            else:
-                                if data[j]["uploadTimestamp"]<data[j+1]["uploadTimestamp"]: # 比較相鄰的元素，如果左邊的元素大於右邊的元素，則交換它們的位置
-                                    temp=data[j]
-                                    data[j]=data[j+1]
-                                    data[j+1]=temp
-
-                maindata=[]
-                for i in range(page*size,(page+1)*size):
-                    try:
-                        maindata.append(data[i])
-                    except IndexError:
-                        break
 
                 return Response({
                     "page": page,
-                    "size": len(maindata),
-                    "totalElements": len(row),
-                    "content": maindata
+                    "size": len(data),
+                    "totalElements": len(query(db,"SELECT*FROM `gameversion` WHERE `deletetime` IS NULL",[])),
+                    "content": data
                 },status.HTTP_200_OK)
             else:
                 return Response({
