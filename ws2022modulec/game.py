@@ -341,7 +341,7 @@ def gameid(request,slug):
                 if row:
                     if usercheck["data"]==row[0][1]:
                         query(db,"DELETE FROM `game` WHERE `slug`=%s",[slug])
-                        query(db,"DELETE FROM `score` WHERE `gameid`=%s",[row[0][0]])
+                        query(db,"DELETE FROM `score` WHERE `gameid`=%s",[row[0]["id"]])
 
                         return Response("",status.HTTP_200_OK)
                     else:
@@ -370,13 +370,13 @@ def score(request,slug):
             row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
             if row:
                 data=[]
-                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0][0]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0]["id"]])
                 for i in range(len(scorerow)):
-                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[scorerow[0][1]])[0]
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[scorerow[i]["userid"]])[0]
                     data.append({
-                        "username": userrow[1],
-                        "score": scorerow[i][3],
-                        "timestamp": scorerow[i][4]
+                        "username": userrow["username"],
+                        "score": scorerow[i]["score"],
+                        "timestamp": scorerow[i]["createtime"]
                     })
 
                 return Response({
@@ -396,7 +396,7 @@ def score(request,slug):
             print(usercheck)
             if usercheck["success"]:
                 if row:
-                    query(db,"INSERT INTO `score`(`userid`,`gameid`,`score`,`createtime`)VALUES(%s,%s,%s,%s)",[usercheck["data"],row[0][0],score,time()])
+                    query(db,"INSERT INTO `score`(`userid`,`gameid`,`score`,`createtime`)VALUES(%s,%s,%s,%s)",[usercheck["data"],row[0]["id"],score,time()])
 
                     return Response({
                         "status": "success"

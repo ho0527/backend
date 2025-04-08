@@ -192,34 +192,34 @@ def getuser(request,username):
             authorgamelist=[]
             scorelist=[]
             if self:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
+                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row["id"]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row["id"]])
             else:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row[0]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row[0]])
+                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row["id"]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row["id"]])
 
             for i in range(len(gamerow)):
                 authorgamelist.append({
-                    "slug": gamerow[i][5],
-                    "title": gamerow[i][4],
-                    "description": gamerow[i][6]
+                    "slug": gamerow[i]["slug"],
+                    "title": gamerow[i]["title"],
+                    "description": gamerow[i]["description"]
                 })
 
             for i in range(len(scorerow)):
-                gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[scorerow[i][2]])
+                gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[scorerow[i]["gameid"]])[0]
                 scorelist.append({
                     "game":{
-                        "slug": gamerow[0][5],
-                        "title": gamerow[0][4],
-                        "description": gamerow[0][6]
+                        "slug": gamerow["slug"],
+                        "title": gamerow["title"],
+                        "description": gamerow["description"]
                     },
-                    "score": scorerow[i][3],
-                    "timestamp": scorerow[i][4]
+                    "score": scorerow[i]["score"],
+                    "timestamp": scorerow[i]["createtime"]
                 })
 
             return Response({
-                "username": row[1],
-                "registerTimestamp": row[3],
+                "username": row["username"],
+                "registerTimestamp": row["createtime"],
                 "authoredGames": authorgamelist,
                 "highscores": scorelist
             },status.HTTP_200_OK)
