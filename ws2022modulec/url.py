@@ -3,7 +3,6 @@ from django.urls import path,include,re_path
 
 from . import index
 from . import game
-from . import admin
 
 urlpatterns=[
     re_path("^api/v1/auth/signup$",index.signup,name="signup"),
