@@ -3,10 +3,9 @@ import bcrypt
 import hashlib
 import json
 import random
-import resource
+import re
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 from django.views.decorators.http import require_http_methods
-from pathlib import Path
 from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
