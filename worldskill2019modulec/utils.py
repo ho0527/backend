@@ -6,7 +6,7 @@ from rest_framework import status
 from function.sql import *
 from function.thing import *
 
-def exception_handler(func):
+def exceptionhandler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:

@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from .utils import exception_handler
+from .utils import exceptionhandler
 
 # 自創
 from function.sql import *
@@ -19,7 +19,7 @@ from .initialize import *
 
 # main START
 @api_view(["GET"])
-@exception_handler
+@exceptionhandler
 def geteventlist(request):
     data=json.loads(request.body)
     input=data.get("input").split("\n")
@@ -49,7 +49,7 @@ def geteventlist(request):
     },status.HTTP_200_OK)
 
 @api_view(["GET"])
-@exception_handler
+@exceptionhandler
 def getevent(request,organizerslug,eventslug):
     data=json.loads(request.body)
     input=data.get("input").split("\n")
@@ -79,7 +79,7 @@ def getevent(request,organizerslug,eventslug):
     },status.HTTP_200_OK)
 
 @api_view(["GET"])
-@exception_handler
+@exceptionhandler
 def getuserevent(request,organizerslug,eventslug):
     data=json.loads(request.body)
     input=data.get("input").split("\n")

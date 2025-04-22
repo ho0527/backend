@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view,renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from .utils import exception_handler
+from .utils import exceptionhandler
 
 # 自創
 from function.sql import *
@@ -20,7 +20,7 @@ from function.thing import *
 db="worldskill2024moduleb"
 
 @api_view(["GET","POST","PUT","DELETE","PATCH"])
-@exception_handler
+@exceptionhandler
 def error404(request):
     return Response({
         "success": False,
