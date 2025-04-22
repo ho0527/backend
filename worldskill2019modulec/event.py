@@ -80,6 +80,36 @@ def getevent(request,organizerslug,eventslug):
 
 @api_view(["GET"])
 @exceptionhandler
+def newevent(request,organizerslug,eventslug):
+    data=json.loads(request.body)
+    input=data.get("input").split("\n")
+
+    responsedata={
+        data: [],
+        allvaild: True
+    }
+
+    for gtin in input:
+        row=query(SETTING["dbname"],"SELECT*FROM `product` WHERE `gtin`=%s AND `deactivatetime` IS NOT  NULL",[gtin],SETTING["dbsetting"])
+        if row:
+            responsedata["data"].append({
+                "gtin": gtin,
+                "status": "vaild"
+            })
+        else:
+            responsedata["allvaild"]=False
+            responsedata["data"].append({
+                "gtin": gtin,
+                "status": "Invaild"
+            })
+
+    return Response({
+        "success": True,
+        "data": responsedata
+    },status.HTTP_200_OK)
+
+@api_view(["GET"])
+@exceptionhandler
 def getuserevent(request,organizerslug,eventslug):
     data=json.loads(request.body)
     input=data.get("input").split("\n")
