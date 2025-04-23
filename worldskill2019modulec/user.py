@@ -18,7 +18,7 @@ from function.thing import *
 from .initialize import *
 
 # main START
-@api_view(["GET"])
+@api_view(["POST"])
 @exceptionhandler
 def login(request):
     data=json.loads(request.body)
@@ -50,7 +50,7 @@ def login(request):
             "message": "ERROR_request_data_not_found"
         },status.HTTP_400_BAD_REQUEST)
 
-@api_view(["GET"])
+@api_view(["POST"])
 @exceptionhandler
 def logout(request,companyid):
     token=request.GET.get("token")

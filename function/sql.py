@@ -1,19 +1,17 @@
 # import pymysql
 import datetime
 import MySQLdb
-import mysql.connector as mysql
 from MySQLdb.cursors import DictCursor
-from mysql.connector import Error
 
 # 自創
 from function.thing import *
 
 # main START
 
-def createdb(dbname,host="localhost",username="root",password="",port="3306"):
+def createdb(dbname,host="127.0.0.1",username="root",password="",port="3306"):
     return MySQLdb.connect(host=host,db=dbname,user=username,passwd=password,port=port)
 
-def query(dbname,query,data=None,setting={"host": "localhost","username": "root","password": "","port": 3306}):
+def query(dbname,query,data=None,setting={"host": "127.0.0.1","username": "root","password": "","port": 3306}):
     response=None
     try:
         db=MySQLdb.connect(host=setting["host"],db=dbname,user=setting["username"],passwd=setting["password"],port=setting["port"])
