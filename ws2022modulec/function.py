@@ -26,7 +26,7 @@ def signincheck(data):
         if header:
             tokenrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[header.split("Bearer ")[1]])
             if tokenrow:
-                if (datetime.datetime.now()-datetime.datetime.strptime(tokenrow[0]["starttime"],'%Y-%m-%d %H:%M:%S')).total_seconds()<3600:
+                if (datetime.datetime.now()-datetime.datetime.strptime(tokenrow[0]["createtime"],'%Y-%m-%d %H:%M:%S')).total_seconds()<3600:
                     userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[tokenrow[0]["userid"]])
                     if userrow:
                         userrow=userrow[0]

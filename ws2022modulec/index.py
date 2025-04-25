@@ -34,33 +34,45 @@ def signup(request):
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
 
         if not username:
-            invaliddata["username"]="required"
+            invaliddata["username"]={
+                "message": "required"
+            }
             check=False
         else:
             if len(username)<4:
-                invaliddata["username"]="must be at least 4 characters long"
+                invaliddata["username"]={
+                    "message": "must be at least 4 characters long"
+                }
                 check=False
             elif len(username)>60:
-                invaliddata["username"]="must be at most 60 characters long"
+                invaliddata["username"]={
+                    "message": "must be at most 60 characters long"
+                }
                 check=False
 
         if not password:
-            invaliddata["password"]="required"
+            invaliddata["password"]={
+                "message": "required"
+            }
             check=False
         else:
             if len(password)<4:
-                invaliddata["password"]="must be at least 4 characters long"
+                invaliddata["password"]={
+                    "message": "must be at least 4 characters long"
+                }
                 check=False
             elif len(password)>(2**16):
-                invaliddata["password"]="must be at most 2^16 characters long"
+                invaliddata["password"]={
+                    "message": "must be at most 2^16 characters long"
+                }
                 check=False
 
         if not row:
             if check:
-                query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`,`lastlogintime`,`deltime`,`delreason`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[username,password,time(),time(),time(),"",""])
+                query(db,"INSERT INTO `user`(`username`,`password`,`createtime`,`updatetime`,`lastlogintime`,`blocktime`,`blockreason`)VALUES(%s,%s,%s,%s,%s,%s,%s)",[username,password,time(),time(),time(),"",""])
                 row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                 token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0]["id"],token,time()])
 
                 return Response({
                     "status": "success",
@@ -69,7 +81,7 @@ def signup(request):
             else:
                 return Response({
                     "status": "invalid",
-                    "message": "request body is not valid",
+                    "message": "Request body is not valid",
                     "violations": invaliddata
                 },status.HTTP_400_BAD_REQUEST)
         else:
@@ -96,27 +108,38 @@ def signin(request):
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
 
         if not username:
-            invaliddata["username"]="required"
+            invaliddata["username"]={
+                "message": "required"
+            }
             check=False
         else:
             if len(username)<4:
-                invaliddata["username"]="must be at least 4 characters long"
+                invaliddata["username"]={
+                    "message": "must be at least 4 characters long"
+                }
                 check=False
             elif len(username)>60:
-                invaliddata["username"]="must be at most 60 characters long"
+                invaliddata["username"]={
+                    "message": "must be at most 60 characters long"
+                }
                 check=False
 
         if not password:
-            invaliddata["password"]="required"
+            invaliddata["password"]={
+                "message": "required"
+            }
             check=False
         else:
             if len(password)<4:
-                invaliddata["password"]="must be at least 4 characters long"
+                invaliddata["password"]={
+                    "message": "must be at least 4 characters long"
+                }
                 check=False
             elif len(password)>(2**16):
-                invaliddata["password"]="must be at most 2^16 characters long"
+                invaliddata["password"]={
+                    "message": "must be at most 2^16 characters long"
+                }
                 check=False
-
 
         if check:
             if row:
@@ -124,7 +147,7 @@ def signin(request):
                     if row[0]["blocktime"]==None:
                         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                         token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
+                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0]["id"],token,time()])
 
                         return Response({
                             "status": "success",
@@ -149,7 +172,7 @@ def signin(request):
         else:
             return Response({
                 "status": "invalid",
-                "message": "request body is not valid",
+                "message": "Request body is not valid",
                 "violations": invaliddata
             },status.HTTP_400_BAD_REQUEST)
     except Exception as error:

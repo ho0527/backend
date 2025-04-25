@@ -66,26 +66,39 @@ def game(request):
             # 驗證 END
 
             if check:
-                row=query(db,"SELECT*FROM `gameversion` WHERE `deletetime` IS NULL ORDER BY `%s` %s LIMIT %s,%s",[sortby,sorttype,page*size,size])
+                row=query(db,"SELECT*FROM `game` WHERE `deletetime` IS NULL",[])
+                totalcount=0
 
                 for i in range(len(row)):
-                    gamerow=query(db,"SELECT*FROM `game` WHERE `id`=%s",[row[i]["gameid"]])[0]
-                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[i][gamerow["userid"]]])[0]
-                    scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[i]["gameid"]])
-                    data.append({
-                        "author": userrow["username"],
-                        "slug": game[i]["slug"],
-                        "title": game[i]["title"],
-                        "description": game[i]["desciption"],
-                        "thumbnail": row[i]["thumbnailpath"],
-                        "scoreCount": len(scorerow),
-                        "uploadTimestamp": row[i]["createtime"]
-                    })
+                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[i]["userid"]])[0]
+                    scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[i]["id"]])
+                    gameversionrow=query(db,"SELECT*FROM `gameversion` WHERE `gameid`=%s",[row[i]["id"]])
+                    if gameversionrow:
+                        gameversionrow=gameversionrow[-1]
+                        data.append({
+                            "author": userrow["username"],
+                            "slug": row[i]["slug"],
+                            "title": row[i]["title"],
+                            "description": row[i]["description"],
+                            "thumbnail": gameversionrow["thumbnailpath"],
+                            "scoreCount": len(scorerow),
+                            "uploadTimestamp": gameversionrow["createtime"]
+                        })
+                        totalcount=totalcount+1
+
+                if sortby=="popular":
+                    data.sort(key=lambda data:data["scoreCount"],reverse=True if sorttype=="desc" else False)
+                elif sortby=="title":
+                    data.sort(key=lambda data:data["title"],reverse=True if sorttype=="desc" else False)
+                else:
+                    data.sort(key=lambda data:data["uploadTimestamp"],reverse=True if sorttype=="desc" else False)
+
+                data=data[page*size:(page+1)*size]
 
                 return Response({
                     "page": page,
                     "size": len(data),
-                    "totalElements": len(query(db,"SELECT*FROM `gameversion` WHERE `deletetime` IS NULL",[])),
+                    "totalElements": totalcount,
                     "content": data
                 },status.HTTP_200_OK)
             else:
@@ -104,23 +117,33 @@ def game(request):
             check=True
 
             if title==None:
-                invaliddata["title"]="required"
+                invaliddata["title"]={
+                    "message": "required"
+                }
                 check=False
             else:
                 slug=title.lower().replace(" ","-")
                 if len(title)<3:
-                    invaliddata["title"]="must be at least 3 characters long"
+                    invaliddata["title"]={
+                        "message": "must be at least 3 characters long"
+                    }
                     check=False
                 elif len(title)>60:
-                    invaliddata["title"]="must be at most 60 characters long"
+                    invaliddata["title"]={
+                        "message": "must be at most 60 characters long"
+                    }
                     check=False
 
             if description==None:
-                invaliddata["description"]="required"
+                invaliddata["description"]={
+                    "message": "required"
+                }
                 check=False
             else:
                 if len(description)>200:
-                    invaliddata["description"]="must be at most 200 characters long"
+                    invaliddata["description"]={
+                        "message": "must be at most 200 characters long"
+                    }
                     check=False
 
             row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
@@ -129,8 +152,8 @@ def game(request):
                 if not row:
                     if check:
                         query(db,
-                            "INSERT INTO `game`(`userid`,`thumbnailpath`,`gamepath`,`title`,`slug`,`description`,`version`,`createtime`,`updatetime`,`deletetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                            [usercheck["data"],None,"",title,slug,description,"0",time(),time(),None]
+                            "INSERT INTO `game`(`userid`,`title`,`slug`,`description`,`createtime`,`updatetime`,`deletetime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",
+                            [usercheck["data"],title,slug,description,time(),time(),None]
                         )
 
                         return Response({
@@ -261,19 +284,27 @@ def gameid(request,slug):
 
             if row:
                 row=row[0]
-                userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[1]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0]])
+                userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row["userid"]])
+                gameversionrow=query(db,"SELECT*FROM `gameversion` WHERE `gameid`=%s",[row["id"]])
+                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row["id"]])
 
-                return Response({
-                    "author": userrow[0][1],
-                    "slug": row[5],
-                    "title": row[4],
-                    "description": row[6],
-                    "gamePath": row[3],
-                    "thumbnail": row[2],
-                    "scoreCount": len(scorerow),
-                    "uploadTimestamp": row[9],
-                },status.HTTP_200_OK)
+                if gameversionrow:
+                    gameversionrow=gameversionrow[-1]
+                    return Response({
+                        "author": userrow[0]["username"],
+                        "slug": row["slug"],
+                        "title": row["title"],
+                        "description": row["description"],
+                        "gamePath": gameversionrow["gamepath"],
+                        "thumbnail": gameversionrow["thumbnailpath"],
+                        "scoreCount": len(scorerow),
+                        "uploadTimestamp": row["createtime"],
+                    },status.HTTP_200_OK)
+                else:
+                    return Response({
+                        "status": "invaled",
+                        "message": "Game not found"
+                    },status.HTTP_404_NOT_FOUND)
             else:
                 return Response({
                     "status": "invaled",
@@ -289,11 +320,11 @@ def gameid(request,slug):
             usercheck=signincheck(request)
             if usercheck["success"]:
                 if row:
-                    if usercheck["data"]==row[0][1]:
+                    if usercheck["data"]==row[0]["userid"]:
                         invaliddata={}
                         check=True
                         if title==None or title=="":
-                            title=row[0][4]
+                            title=row[0]["title"]
                         else:
                             if len(title)<3:
                                 invaliddata["title"]="must be at least 3 characters long"
@@ -303,7 +334,7 @@ def gameid(request,slug):
                                 check=False
 
                         if description==None or description=="":
-                            description=row[0][6]
+                            description=row[0]["description"]
                         else:
                             if len(description)>200:
                                 invaliddata["description"]="must be at most 200 characters long"
@@ -335,15 +366,15 @@ def gameid(request,slug):
                 return Response(usercheck["data"],status.HTTP_401_UNAUTHORIZED)
 
         else:
-            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
+            row=query(db,"SELECT*FROM `game` WHERE `slug`=%s AND `deletetime` IS NULL",[slug])
             usercheck=signincheck(request)
             if usercheck["success"]:
                 if row:
-                    if usercheck["data"]==row[0][1]:
-                        query(db,"DELETE FROM `game` WHERE `slug`=%s",[slug])
+                    if usercheck["data"]==row[0]["userid"]:
+                        query(db,"UPDATE `game` SET `deletetime`=%s WHERE `slug`=%s",[nowtime(),slug])
                         query(db,"DELETE FROM `score` WHERE `gameid`=%s",[row[0]["id"]])
 
-                        return Response("",status.HTTP_200_OK)
+                        return Response("",status.HTTP_204_NO_CONTENT)
                     else:
                         return Response({
                             "status": "forbidden",
