@@ -20,7 +20,7 @@ from function.thing import *
 from ws2022modulec.function import signincheck
 
 # main START
-db="ws2022modulec"
+db="worldskill2022modulec"
 
 @api_view(["POST"])
 def signup(request):

@@ -20,7 +20,7 @@ from function.thing import *
 from ws2022modulec.function import signincheck
 
 # main START
-db="ws2022modulec"
+db="worldskill2022modulec"
 
 @api_view(["GET","POST"])
 def game(request):
@@ -190,9 +190,11 @@ def uploadgame(request,slug):
                 "status": "invalid",
                 "message": "request body is not valid",
                 "violations": {
-                    "zipfile": "required"
+                    "zipfile":{
+                        "message": "required"
+                    }
                 }
-            },status.HTTP_500_INTERNAL_SERVER_ERROR)
+            },status.HTTP_401_UNAUTHORIZED)
 
         try:
             token=request.POST["token"]
@@ -200,36 +202,43 @@ def uploadgame(request,slug):
             return Response({
                 "status": "unauthenticated",
                 "message": "missing token"
-            },status.HTTP_500_INTERNAL_SERVER_ERROR)
+            },status.HTTP_401_UNAUTHORIZED)
 
 
         if token and token!="":
-            tokenrow=query("ws2022modulec","SELECT*FROM `token` WHERE `token`=%s",[token])
+            tokenrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
             if tokenrow:
                 if file:
                     row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
                     if row:
                         row=row[0]
-                        if tokenrow[0][1]==row[1]:
+                        if tokenrow[0]["userid"]==row["userid"]:
                             try:
+                                gameversionrow=query(db,"SELECT*FROM `gameversion` WHERE `gameid`=%s",[row["id"]])
+
                                 # 上傳zip到./temp資料夾
                                 zipname=randomname()+os.path.splitext(file.name)[1]
-                                uploadfile("./upload/ws2022modulec",file,zipname)
-                                ziplink="./upload/ws2022modulec/"+zipname
+                                uploadfile("./upload/worldskill2022modulec",file,zipname)
+                                ziplink="./upload/worldskill2022modulec/"+zipname
 
                                 # 解壓zip
-                                version=str(int(row[7])+1)
+                                if gameversionrow:
+                                    version=str(int(gameversionrow[-1]["version"])+1)
+                                else:
+                                    version=1
+
                                 with ZipFile(ziplink,"r") as zipfile:
-                                    zipfile.extractall("./upload/ws2022modulec/"+(slug+"/"+version))
+                                    zipfile.extractall("./upload/worldskill2022modulec/"+(slug+"/"+version))
                                     filelist=zipfile.namelist()
+
                                 if os.path.getsize(ziplink)<=1048576:
                                     os.remove(ziplink)
                                     if "index.html" in filelist:
                                         thumbnailpath=None
                                         if "thumbnail.png" in filelist:
-                                            thumbnailpath="/backend/media/ws2022modulec/"+(slug+"/"+version)+"/thumbnail.png"
+                                            thumbnailpath="/backend/media/worldskill2022modulec/"+(slug+"/"+version)+"/thumbnail.png"
 
-                                        query(db,"UPDATE `game` SET `thumbnailpath`=%s,`gamepath`=%s,`version`=%s,`updatetime`=%s WHERE `slug`=%s",[thumbnailpath,"/backend/media/ws2022modulec/"+(slug+"/"+version),version,time(),slug])
+                                        query(db,"UPDATE `game` SET `thumbnailpath`=%s,`gamepath`=%s,`version`=%s,`updatetime`=%s WHERE `slug`=%s",[thumbnailpath,"/backend/media/worldskill2022modulec/"+(slug+"/"+version),version,time(),slug])
 
                                         return Response({
                                             "status": "success"
@@ -256,7 +265,9 @@ def uploadgame(request,slug):
                         "status": "invalid",
                         "message": "request body is not valid",
                         "violations": {
-                            "zipfile": "required"
+                            "zipfile": {
+                                "message": "required"
+                            }
                         }
                     },status.HTTP_400_BAD_REQUEST)
             else:

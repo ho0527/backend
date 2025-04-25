@@ -18,7 +18,7 @@ from google.auth.transport import requests
 from function.sql import query,createdb
 from function.thing import *
 
-db="ws2022modulec"
+db="worldskill2022modulec"
 
 def signincheck(data):
     try:
