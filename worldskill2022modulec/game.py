@@ -445,10 +445,10 @@ def score(request,slug):
 
             row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
             usercheck=signincheck(request)
-            print(usercheck)
             if usercheck["success"]:
                 if row:
-                    query(db,"INSERT INTO `score`(`userid`,`gameid`,`score`,`createtime`)VALUES(%s,%s,%s,%s)",[usercheck["data"],row[0]["id"],score,time()])
+                    gameversionrow=query(db,"SELECT*FROM `gameversion` WHERE `gameid`=%s",[row[0]["id"]])[-1]
+                    query(db,"INSERT INTO `score`(`userid`,`gameid`,`gameversionid`,`score`,`createtime`)VALUES(%s,%s,%s,%s,%s)",[usercheck["data"],row[0]["id"],gameversionrow["id"],score,time()])
 
                     return Response({
                         "status": "success"
