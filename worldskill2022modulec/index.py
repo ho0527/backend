@@ -203,23 +203,24 @@ def signout(request):
 @api_view(["GET"])
 def getuser(request,username):
     try:
-        check=signincheck(request)
-        if check["success"]:
-            self=True
-        else:
-            self=False
-
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
         if row:
             row=row[0]
             authorgamelist=[]
             scorelist=[]
-            if self:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row["id"]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT `gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row["id"]])
-            else:
-                gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s AND `version`!='0'",[row["id"]])
-                scorerow=query(db,"SELECT*FROM `score` WHERE (`gameid`,`score`)IN(SELECT`gameid`,MAX(`score`)FROM`score`GROUP BY`gameid`) AND `userid`=%s",[row["id"]])
+
+            gamerow=query(db,"SELECT*FROM `game` WHERE `userid`=%s",[row["id"]])
+            scorerow=query(db,"""
+                SELECT *
+                FROM score
+                WHERE (userid, gameid, score) IN (
+                    SELECT userid, gameid, MAX(score)
+                    FROM score
+                    WHERE userid=%s
+                    GROUP BY userid, gameid
+                )
+            """,[row["id"]])
+            print(scorerow)
 
             for i in range(len(gamerow)):
                 authorgamelist.append({

@@ -313,9 +313,15 @@ def gameid(request,slug):
                     },status.HTTP_200_OK)
                 else:
                     return Response({
-                        "status": "invaled",
-                        "message": "Game not found"
-                    },status.HTTP_404_NOT_FOUND)
+                        "author": userrow[0]["username"],
+                        "slug": row["slug"],
+                        "title": row["title"],
+                        "description": row["description"],
+                        "gamePath": None,
+                        "thumbnail": None,
+                        "scoreCount": len(scorerow),
+                        "uploadTimestamp": row["createtime"],
+                    },status.HTTP_200_OK)
             else:
                 return Response({
                     "status": "invaled",
