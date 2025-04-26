@@ -238,7 +238,7 @@ def uploadgame(request,slug):
                                         if "thumbnail.png" in filelist:
                                             thumbnailpath="/backend/media/worldskill2022modulec/"+(slug+"/"+version)+"/thumbnail.png"
 
-                                        query(db,"UPDATE `game` SET `thumbnailpath`=%s,`gamepath`=%s,`version`=%s,`updatetime`=%s WHERE `slug`=%s",[thumbnailpath,"/backend/media/worldskill2022modulec/"+(slug+"/"+version),version,time(),slug])
+                                        query(db,"INSERT INTO `gameversion` (`gameid`,`thumbnailpath`,`gamepath`,`version`,`createtime`)VALUES(%s,%s,%s,%s,%s)",[row["id"],thumbnailpath,"/backend/media/worldskill2022modulec/"+(slug+"/"+version),version,time()])
 
                                         return Response({
                                             "status": "success"
