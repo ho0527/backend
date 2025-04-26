@@ -15,7 +15,7 @@ urlpatterns=[
     path("54regional/",include("54regional.url"),name="54regional"), # 54regional
     path("55regional/",include("55regional.url"),name="55regional"), # 55regional
     path("worldskill2019modulec/",include("worldskill2019modulec.url"),name="worldskill2019modulec"), # worldskill2019modulec
-    path("worldskill2022modulec/",include("ws2022modulec.url"),name="ws2022modulec"), # worldskill2022modulec
+    path("worldskill2022modulec/",include("worldskill2022modulec.url"),name="worldskill2022modulec"), # worldskill2022modulec
     path("worldskill2024moduleb/",include("worldskill2024moduleb.url"),name="worldskill2024moduleb"), # worldskill2022modulec
 
     # 自用

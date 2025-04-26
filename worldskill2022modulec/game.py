@@ -17,7 +17,7 @@ from zipfile import *
 # 自創
 from function.sql import query,createdb
 from function.thing import *
-from ws2022modulec.function import signincheck
+from .function import signincheck
 
 # main START
 db="worldskill2022modulec"
@@ -411,14 +411,24 @@ def score(request,slug):
         if request.method=="GET":
             row=query(db,"SELECT*FROM `game` WHERE `slug`=%s",[slug])
             if row:
+                scorerow=query(db,"""
+                    SELECT
+                        u.username,
+                        MAX(s.score) AS score,
+                        MAX(s.createtime) AS timestamp
+                    FROM score s
+                    JOIN user u ON s.userid=u.id
+                    WHERE s.gameid=%s
+                    GROUP BY s.userid
+                    ORDER BY score DESC
+                """,[row[0]["id"]])
+
                 data=[]
-                scorerow=query(db,"SELECT*FROM `score` WHERE `gameid`=%s",[row[0]["id"]])
                 for i in range(len(scorerow)):
-                    userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[scorerow[i]["userid"]])[0]
                     data.append({
-                        "username": userrow["username"],
+                        "username": scorerow[i]["username"],
                         "score": scorerow[i]["score"],
-                        "timestamp": scorerow[i]["createtime"]
+                        "timestamp": scorerow[i]["timestamp"]
                     })
 
                 return Response({
