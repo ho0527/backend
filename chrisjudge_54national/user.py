@@ -14,7 +14,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 # 自創
-from function.sql import *
+from .sql import *
 from function.thing import *
 from .test import checkfile
 

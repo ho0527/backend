@@ -15,7 +15,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 # 自創
-from function.sql import *
+from .sql import *
 from function.thing import *
 
 # main START
