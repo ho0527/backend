@@ -1,7 +1,6 @@
 # import
 import base64
 import bcrypt
-import cv2
 import hashlib
 import io
 import json
@@ -13,7 +12,6 @@ import os.path
 import random
 import re
 import pyautogui
-import pytesseract
 import google.oauth2.id_token
 from PIL import Image
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
