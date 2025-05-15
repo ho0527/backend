@@ -29,16 +29,16 @@ def login(request):
         password=data.get("password")
         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
         if row:
-            if checkpassword(password,row[0][2]):
+            if checkpassword(password,row[0]["password"]):
                 row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                 token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入",time()])
+                query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0]["id"],token,time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["id"],"使用者登入",time()])
                 return Response({
                     "success": True,
                     "data": {
                         "token": token,
-                        "permission": row[0][4]
+                        "permission": row[0]["permission"]
                     }
                 },status.HTTP_200_OK)
             else:
@@ -152,7 +152,7 @@ def logout(request,token):
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
             query(db,"DELETE FROM `token` WHERE `token`=%s",[token])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"使用者登出",time()])
+            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["userid"],"使用者登出",time()])
             return Response({
                 "success": True,
                 "data": ""
@@ -177,12 +177,12 @@ def logincheck(request):
             token=token[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
-            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])[0]
+            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0]["userid"]])[0]
             return Response({
                 "success": True,
                 "data": {
-                    "userid": userrow[0],
-                    "permission": userrow[4],
+                    "userid": userrow["id"],
+                    "permission": userrow["permission"],
                 }
             },status.HTTP_200_OK)
         else:

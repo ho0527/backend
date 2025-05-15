@@ -2,8 +2,8 @@ import subprocess
 import time
 
 def checkfile(file,question):
-    testinput=question[5].split("|&|")
-    testoutput=question[6].split("|&|")
+    testinput=question["input"].split("|&|")
+    testoutput=question["output"].split("|&|")
     success=True
     runtime=time.time()
     result="SU"
@@ -39,7 +39,7 @@ def checkfile(file,question):
                 response=f"{response}test_{i+1} failed respound failed\ninput:\n{testinput[i]}\nexpectedoutput: {expectedoutput}\nactualoutput: {actualoutput}\n"
 
             # 超時
-            elif int(question[7])<round(outputruntime-inputruntime): # [BUG]這個round是偷吃步解法
+            elif int(question["maxruntime"])<round(outputruntime-inputruntime): # [BUG]這個round是偷吃步解法
                 success=False
                 if result=="SU":
                     result="OT"

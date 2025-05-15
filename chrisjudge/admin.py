@@ -25,7 +25,7 @@ def getquestionlist(request):
     try:
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["id"]
             row=query(db,"SELECT*FROM `question`")
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"查詢題目",time()])
 

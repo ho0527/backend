@@ -111,7 +111,7 @@ def newresponse(request,questionid):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
 
             responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%sAND`questionid`=%s",[userid,questionid])
             questionrow=query(db,"SELECT*FROM `question` WHERE `id`=%s",[questionid])
@@ -159,7 +159,7 @@ def getresponse(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             if request.GET.get("userid"):
                 userid=request.GET.get("userid")
             row=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userid])
@@ -185,7 +185,7 @@ def getresponselist(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow:
-            row=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[0][1]])
+            row=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[0]["userid"]])
             return Response({
                 "success": True,
                 "data": row
@@ -213,33 +213,33 @@ def getscorelist(request):
             data=[]
             questionidlist=[]
             for i in range(len(userrow)):
-                responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[i][0]])
+                responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[i]["userid"]])
                 responselist=[]
                 for j in range(len(questionrow)):
                     response=""
                     for k in range(len(responserow)):
-                        if responserow[k][2]==questionrow[j][0]:
-                            response=responserow[k][6]
+                        if responserow[k]["questionid"]==questionrow[j]["id"]:
+                            response=responserow[k]["result"]
                     responselist.append({
-                        "questionid": questionrow[j][0],
+                        "questionid": questionrow[j]["id"],
                         "result": response
                     })
-                if int(userrow[i][4])>=4:
+                if int(userrow[i]["permission"])>=4:
                     data.append({
-                        "userid": userrow[i][0],
-                        "nickname": userrow[i][3],
+                        "userid": userrow[i]["id"],
+                        "nickname": userrow[i]["nickname"],
                         "responselist": None,
                         "reason": "user is admin"
                     })
                 else:
                     data.append({
-                        "userid": userrow[i][0],
-                        "nickname": userrow[i][3],
+                        "userid": userrow[i]["id"],
+                        "nickname": userrow[i]["nickname"],
                         "responselist": responselist
                     })
 
             for i in range(len(questionrow)):
-                questionidlist.append(questionrow[i][0])
+                questionidlist.append(questionrow[i]["id"])
 
             return Response({
                 "success": True,
