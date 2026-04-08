@@ -27,9 +27,9 @@ def getuser(request,token):
         # token=request.headers.get("Authorization").split("Bearer ")[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
-            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
+            userrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0]["userid"]])
             if userrow:
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"查詢使用者id: "+str(row[0][1]),time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["userid"],"查詢使用者id: "+str(row[0]["userid"]),time()])
                 return Response({
                     "success": True,
                     "data": userrow[0]
@@ -61,8 +61,8 @@ def edituser(request):
             username=data.get("username")
             nickname=data.get("nickname")
 
-            query(db,"UPDATE `user` SET `username`=%s,`nickname`=%s,`updatetime`=%s WHERE `id`=%s",[username,nickname,time(),userrow[0][1]])
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userrow[0][1],"修改使用者id: "+userrow[0][1],time()])
+            query(db,"UPDATE `user` SET `username`=%s,`nickname`=%s,`updatetime`=%s WHERE `id`=%s",[username,nickname,time(),userrow[0]["userid"]])
+            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userrow[0]["userid"],"修改使用者id: "+userrow[0]["userid"],time()])
 
             return Response({
                 "success": True,
@@ -85,7 +85,7 @@ def deluser(request,id):
     try:
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             query(db,"DELETE FROM `question` WHERE `id`=%s",[id])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"刪除題目id: "+id,time()])
 
@@ -213,7 +213,7 @@ def getscorelist(request):
             data=[]
             questionidlist=[]
             for i in range(len(userrow)):
-                responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[i]["userid"]])
+                responserow=query(db,"SELECT*FROM `response` WHERE `userid`=%s",[userrow[i]["id"]])
                 responselist=[]
                 for j in range(len(questionrow)):
                     response=""

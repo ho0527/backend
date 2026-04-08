@@ -72,8 +72,8 @@ def thirdpartylogin(request,type):
                 query("chrisjudge","INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`email`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s)",["","","","1",data["email"],time(),time()])
             row=query(db,"SELECT*FROM `user` WHERE `email`=%s",[data["email"]])
             token=str(hash(data["email"],"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[str(row[0][0]),token,time()]) # "google_"+ (1)
-            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者登入_google",time()])
+            query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[str(row[0]["id"]),token,time()]) # "google_"+ (1)
+            query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["id"],"使用者登入_google",time()])
             return Response({
                 "success": True,
                 "data": {
@@ -108,8 +108,8 @@ def signup(request):
                         query(db,"INSERT INTO `user`(`username`,`password`,`nickname`,`permission`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s)",[username,hashpassword(password),nickname,"1",time(),time()])
                         row=query(db,"SELECT*FROM `user` WHERE `username`=%s",[username])
                         token=str(hash(username,"sha256"))+str(str(random.randint(0,99999999)).zfill(8))
-                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0][0],token,time()])
-                        query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][0],"使用者註冊",time()])
+                        query(db,"INSERT INTO `token`(`userid`,`token`,`createtime`)VALUES(%s,%s,%s)",[row[0]["id"],token,time()])
+                        query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["id"],"使用者註冊",time()])
 
                         print("username: "+str(username))
                         print("logintoken: "+str(token))

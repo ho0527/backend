@@ -30,29 +30,29 @@ def getwarnlist(request,guildid):
 
         for i in range(len(row)):
             usercheck=False
-            userrow=query(db,"SELECT*FROM `user` WHERE `userid`=%s",[row[i][3]])
+            userrow=query(db,"SELECT*FROM `user` WHERE `userid`=%s",[row[i]["userid"]])
 
             for j in range(len(totalwarndata)):
-                if totalwarndata[j]["userid"]==row[i][3]:
-                    totalwarndata[j]["totalwarn"]=totalwarndata[j]["totalwarn"]+int(row[i][4])
+                if totalwarndata[j]["userid"]==row[i]["userid"]:
+                    totalwarndata[j]["totalwarn"]=totalwarndata[j]["totalwarn"]+int(row[i]["time"])
                     totalwarn=totalwarndata[j]["totalwarn"]
                     usercheck=True
                     break
 
             if not usercheck:
                 totalwarndata.append({
-                    "userid": row[i][3],
-                    "totalwarn": int(row[i][4])
+                    "userid": row[i]["userid"],
+                    "totalwarn": int(row[i]["time"])
                 })
-                totalwarn=int(row[i][4])
+                totalwarn=int(row[i]["time"])
 
             data.append({
-                "userid": row[i][3],
-                "name": userrow[0][2],
-                "warntime": row[i][4],
-                "warnreason": row[i][5],
+                "userid": row[i]["userid"],
+                "name": userrow[0]["name"],
+                "warntime": row[i]["time"],
+                "warnreason": row[i]["reason"],
                 "totalwarn": totalwarn,
-                "createtime": row[i][6]
+                "createtime": row[i]["createtime"],
             })
 
         return Response({

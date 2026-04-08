@@ -50,7 +50,7 @@ def getquestion(request,id):
     try:
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             row=query(db,"SELECT*FROM `question` WHERE `id`=%s",[id])
             if row:
                 query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"查詢題目id: "+str(id),time()])
@@ -94,7 +94,7 @@ def newquestion(request):
 
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if userrow and token!=None:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             query(db,"INSERT INTO `question`(`userid`,`title`,`description`,`tag`,`input`,`output`,`maxruntime`,`createtime`,`updatetime`)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)",[userid,title,description,tag,input,output,maxruntime,time(),time()])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"新增題目",time()])
 
@@ -127,7 +127,7 @@ def editquestion(request,id):
 
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             query(db,"UPDATE `question` SET `title`=%s,`description`=%s,`tag`=%s,`input`=%s,`output`=%s,`maxruntime`=%s,`updatetime`=%s WHERE `id`=%s",[title,description,tag,input,output,maxruntime,time(),id])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"修改題目id: "+id,time()])
 
@@ -152,7 +152,7 @@ def delquestion(request,id):
     try:
         userrow=query(db,"SELECT*FROM `token` WHERE `token`=%s",[request.headers.get("Authorization").split("Bearer ")[1]])
         if userrow:
-            userid=userrow[0][1]
+            userid=userrow[0]["userid"]
             query(db,"DELETE FROM `question` WHERE `id`=%s",[id])
             query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[userid,"刪除題目id: "+id,time()])
 
@@ -178,10 +178,10 @@ def getuserlist(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
-            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
+            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0]["userid"]])
             if loginuserrow:
                 userrow=query(db,"SELECT*FROM `user`")
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"查詢使用者列表",time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["userid"],"查詢使用者列表",time()])
                 return Response({
                     "success": True,
                     "data": userrow
@@ -209,10 +209,10 @@ def getlog(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
-            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
-            if int(loginuserrow[0][4])>=4:
+            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0]["userid"]])
+            if int(loginuserrow[0]["permission"])>=4:
                 log=query(db,"SELECT*FROM `log`")
-                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0][1],"獲取伺服器紀錄",time()])
+                query(db,"INSERT INTO `log`(`userid`,`move`,`movetime`)VALUES(%s,%s,%s)",[row[0]["userid"],"獲取伺服器紀錄",time()])
                 return Response({
                     "success": True,
                     "data": log
@@ -240,7 +240,7 @@ def refdb(request):
         token=request.headers.get("Authorization").split("Bearer ")[1]
         row=query(db,"SELECT*FROM `token` WHERE `token`=%s",[token])
         if row:
-            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0][1]])
+            loginuserrow=query(db,"SELECT*FROM `user` WHERE `id`=%s",[row[0]["userid"]])
             if int(loginuserrow[0][4])>=4:
                 insertdata=[
                     ["web01",hashpassword("web01pass"),"web01",1,"",time(),time(),None],
